@@ -9,6 +9,7 @@ import Tools.Treeify
 
 import Control.Monad.Reader
 import System.Environment ( getArgs )
+import Control.Monad ( when, unless )
 import System.Console.GetOpt
 import System.Exit
 
