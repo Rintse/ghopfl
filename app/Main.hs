@@ -41,4 +41,3 @@ main = do
 
     -- Evaluate if requested
     when eval $ evaluate verb exp depth draws env
-

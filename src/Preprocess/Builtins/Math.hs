@@ -1,0 +1,19 @@
+module Preprocess.Builtins.Math where
+
+builtins =
+  [ ("exp", "λ x . 2.71828 ^ x)"),
+    ("min", "λ x . λ y . if ( x < y ) then x else y"),
+    ("max", "λ x . λ y . if ( x > y ) then x else y"),
+    ("odd", "λ x . x % 2 = 1"),
+    ("even", "λ x . x % 2 = 0"),
+    ("sqrt", "λ x . x ^ 0.5"),
+    ("add", "λ x . λ y . x + y"),
+    ("subtract", "λ x . λ y . x - y"),
+    ("divide", "λ x . λ y . x / y"),
+    ("multiply", "λ x . λ y . x * y"),
+    ("power", "λ x . λ y . x ^ y"),
+    ("mod", "λ x . λ y . x % y"),
+    ("xor", "λ p . λ q . ( p ∨ q ) ∧ ¬ ( p ∧ q )"),
+    ("implies", "λ p . λ q . ¬ p ∨ q"),
+    ("not", "λ p . ¬ p")
+  ]

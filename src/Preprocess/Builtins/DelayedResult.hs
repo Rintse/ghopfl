@@ -1,0 +1,55 @@
+{-# LANGUAGE MultilineStrings #-}
+module Preprocess.Builtins.DelayedResult where
+
+-- Defines the type of a delayed result, and some functions on them
+
+builtins =
+  [ -- Value is available now
+    ("dres_now", " λ x . in ( inL ( x ) )"),
+    -- Delay value by one step
+    ("dres_delay", " λ x . in ( inR ( next x ) )"),
+    -- Never finishing computation
+    ("dres_never", " fix f . in ( inR f )"),
+    -- Constructor for recursive use
+    ("dres_later", " λ x . in ( inR ( x ) )"),
+    -- Apply a single argument function to the partial result
+    ( "dres_map",
+      """
+      λ func . fix f . λ x .
+          match ( out x ) {
+              inL value → dres_now ( func value ) ;
+              inR delay → dres_later ( f ⊙ delay ) 
+          }
+      """
+    ),
+    -- Applies a binary operation to one delayed result and one regular data type
+    ( "dres_func2_1",
+      """
+      λ func . fix f . λ a . λ x .
+          match ( out x ) {
+              inL value → dres_now ( func a value ) ;
+              inR delay → dres_later ( f ⊙ next a ⊙ delay )
+          }
+      """
+    ),
+    -- TODO: non-recursive imports?
+    ("flip2", "λ f . λ a1 . λ a2 . f a2 a1"),
+    -- Applies a binary function to two delayed results
+    ( "dres_func2",
+      """
+      λ func . fix f . λ x1 . λ x2 .
+          match ( out x1 ) {
+              # First argument available first, continue with second
+              inL value1 → dres_func2_1 func value1 x2 ;
+              inR delay1 → ( 
+                  match ( out x2 ) {
+                      # Second argument available first, continue with first
+                      inL value2 → dres_func2_1 ( flip2 func ) value2 x1 ;
+                      # Otherwise, go one level deeper in both
+                      inR delay2 → dres_later ( f ⊙ delay1 ⊙ delay2 )
+                  } 
+              )
+      }
+      """
+    )
+  ]

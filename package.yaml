@@ -3,6 +3,7 @@ version:             0.1.0.0
 github:              "rintse/ghopfl"
 license:             BSD3
 author:              "Rintse van de Vlasakker"
+build-type:          Custom
 
 extra-source-files:
 - README.md
@@ -37,6 +38,12 @@ dependencies:
 - recursion-schemes
 - monadic-recursion-schemes
 
+custom-setup:
+  dependencies:
+  - base
+  - Cabal
+  - process
+
 library:
   source-dirs: src
 
@@ -44,16 +51,6 @@ executables:
   ghopfl-exe:
     main:                Main.hs
     source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - ghopfl
-  
-  builtin-exe:
-    main:                Main.hs
-    source-dirs:         mk_builtins
     ghc-options:
     - -threaded
     - -rtsopts

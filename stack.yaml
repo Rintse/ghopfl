@@ -8,9 +8,9 @@
 # A snapshot resolver dictates the compiler version and the set of packages
 # to be used for project dependencies. For example:
 #
-resolver: lts-22.5
+# resolver: lts-24.29
 # resolver: nightly-2015-09-21
-# resolver: ghc-9.4.8
+resolver: ghc-9.12.2
 #
 # The location of a snapshot can be provided as a file or url. Stack assumes
 # a snapshot provided as a file might change, whereas a url resource does not.
@@ -42,8 +42,37 @@ packages:
 allow-newer: true
 
 extra-deps: [
-  "monadic-recursion-schemes-0.1.13.1@sha256:4cecf9b4f28493e46862f037d54689ff93bb4b4f798d1a71e79a8a846d6b44e7,1769"
-    ]
+  "monadic-recursion-schemes-0.1.13.1@sha256:4cecf9b4f28493e46862f037d54689ff93bb4b4f798d1a71e79a8a846d6b44e7,1769",
+  "ilist-0.4.0.1@sha256:126019faf3d02f305c5762ae9602be1cbf76291153a1a7461270ad1429678111,3305",
+  "MonadRandom-0.6.2.1@sha256:41658e853fe97b97aa92f752300c82e6d7a7ab99bea425160e2746a1a7eb79dd,1389",
+  "alex-3.5.4.0@sha256:38b3481bb0d5eb58c9dd6579e7904859372c3c0c82a8db86e58177649c289621,4546",
+  "comonad-5.0.10@sha256:e8606e010e306f41019026e94b0676993c175260d1d8908e4518b2b06a40272b,3443",
+  "free-5.2@sha256:39ca01645f7c2f08ffd64226891c514bdc924a87da48f815f9fe77c2e0ac1164,4178",
+  "happy-2.2@sha256:b3a984db884db17d4cbe31cd9cf3f4df5eb9b6224313bdddd49712eb40fb0dfb,5065",
+  "hashable-1.5.1.0@sha256:140fc5adad166f7b527567cbd26ff481e8da4a66bdfc84be3ddf28dbeb66f275,5787",
+  "normaldistribution-1.1.0.3@sha256:2615b784c4112cbf6ffa0e2b55b76790290a9b9dff18a05d8c89aa374b213477,2160",
+  "random-1.3.1@sha256:0b4f649c3e78713b2ccad1535251ee34b148237fb2229d7058c2b1d9ccc324b8,6004",
+  "recursion-schemes-5.2.3@sha256:918e804084122e022d3784a4ca9add536fe9fcc2150ceef5865ca14d4fab4851,3106",
+  "split-0.2.5@sha256:5bc1ae848bfded3087ea3e568908f1b75f56ecde6f02df3fad1a138dd5c783d5,2625",
+  "unordered-containers-0.2.21@sha256:c5de1fb3377ed3c5f4cd851a771d1acc5c37d2f6bef0a499295c0e8857da5605,3987",
+  "data-fix-0.3.4@sha256:200360c49cc81cf8b8bbdf49afd4aee03fffd09d3395b080a7e7c65fcf01d313,1421",
+  "distributive-0.6.3@sha256:9dec7cd4dc49325f551b2f2bf2004cfe2454b211e5882265cc87880d4382b1f8,2342",
+  "happy-lib-2.2@sha256:ef829bf7f489402742ea5da093d4549cf9f745a0aa0e6894cf67b5260f90306e,6101",
+  "indexed-traversable-0.1.4@sha256:42d9e84a65a0c17c248233cab98ada872ff6140dfa24d109d6eb285204d07e7d,2098",
+  "primitive-0.9.1.0@sha256:756b222c715bc6ef5ba81fa69cdbaa20c5c53beb6f16f174b8bacc93a6d239f0,3258",
+  "profunctors-5.6.3@sha256:bfdb8c8b8cd4390e30219219edaff6ae7f428516f7338f0b7c39cb16b84bad2c,2408",
+  "semigroupoids-6.0.2@sha256:52c5a346fdf74380618f67ff784989ef9078498dbbdff09e4d8e2fed20202e2c,7216",
+  "splitmix-0.1.3.2@sha256:a557cff65eed1f70f3a3b468423cd58e7a9a9564c5cc00c76a13de64dec9bcbd,3608",
+  "tagged-0.8.10@sha256:e9b97c98e9827981d62f37c5febf9e6bbb67acec92b8bd41fd9f7ace5eb31d32,2201",
+  "th-abstraction-0.7.2.0@sha256:380819d6e14645bf66af99b6ea3d3d4309c523c7d0ee376e0678042622f1c272,2181",
+  "transformers-base-0.4.6@sha256:6f18f320e371c8954c4b6b211e2fdd5d15a6d6310bd605b9d640f47ede408961,1643",
+  "base-orphans-0.9.4@sha256:001f2b3094b7a1b00e9fd5dcc519a62b8b147a1754bf550fa42601ff868e2b65,3241",
+  "bifunctors-5.6.3@sha256:58f1d66db71ed9dd70648eaca1a0986b29354b3a69b5bfd729ce1a896766466e,3271",
+  "contravariant-1.5.6@sha256:288f1d3e6fb3adcf9f36f28ffa189673f2f1303812296dfb2523478ad31dd9e2,2182",
+  "transformers-compat-0.8@sha256:246d2d55c4970592fb68d9d9282d1af719729af1a883c1c5b74fdd49d50866dc,3762",
+  "StateVar-1.2.2@sha256:3c022c00485fe165e3080d5da6b3ca9c9b02f62c5deebc584d1b3d1309ce673e,1673",
+  "assoc-1.1.1@sha256:766b1040eda5255bfcf10e1a9859c06d0ed6ad0e2ac87ed915bb035574d10ae4,1437",
+]
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

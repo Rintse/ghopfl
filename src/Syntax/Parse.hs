@@ -30,12 +30,21 @@ parse v s = do
     let ts = myLLexer s
     case pPrg ts of
         Bad r -> do
-            putStrLn $"Parse failed: " ++ r
+            putStrLn $ "Parse failed: " ++ r
             putStrV v $ "Tokens still in stream:\n" ++ show ts
             exitFailure
         Ok r -> do
             putStrV v "Parse successful"
             return r
+
+-- Used for builtins: we can just error out if this fails
+parseExp :: String -> Exp
+parseExp s = do
+    let ts = myLLexer s
+    case pExp ts of
+        Bad r -> do
+            error $ "Parse error. Tokens still in stream:\n" ++ show ts
+        Ok r -> r
 
 -- Parses the environment if such an argument is given
 parseEnv :: String -> IO Environment

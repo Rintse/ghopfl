@@ -4,8 +4,8 @@
 -- function that transforms raw expressions into their annotated versions
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
-{-# LANGUAGE TemplateHaskell, TypeFamilies, LambdaCase #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE TypeFamilies, LambdaCase #-}
 
 module Preprocess.AnnotateVars where
 
@@ -43,7 +43,7 @@ pushVar (Raw.Ident x) c = HM.insertWith (++) x [c]
 pushVars :: [Raw.Assignment] -> Int -> IdMap -> IdMap
 pushVars l c m = do
     let idxd = Prelude.map (first (+c)) (indexed l)
-    let push1 = \m1 (id, Raw.Assign x _ t) -> pushVar x id m1
+    let push1 m1 (id, Raw.Assign x _ t) = pushVar x id m1
     Prelude.foldl push1 m idxd
 
 -- Rename an individual substitution
@@ -87,11 +87,11 @@ transform :: Raw.Exp -> IdMonad Exp
 transform exp = case exp of
     -- Annotate variables with a unique ID
     Raw.Var v           -> asks (Var . getSub v)
-    
+
     -- Integers and doubles into one overarching number type
     Raw.DVal v          -> return $ Val $ Fract v
     Raw.IVal v          -> return $ Val $ Whole v
-    
+
     -- Simple 1-to-1 correspondence.
     Raw.Single t        -> return Single
     Raw.BVal v          -> return $ BVal v
@@ -162,14 +162,14 @@ transform exp = case exp of
         r1 <- asks (getSub f . pushVar f cur)
         r2 <- local (pushVar f cur) $ transform e
         return $ Rec r1 r2
-    
+
     -- Lists
     Raw.EList (Raw.List l) -> List <$> mapM transform l
 
     Raw.ListCons   e e2 -> liftA2 LCons     (transform e) (transform e2)
     Raw.ListAppend e e2 -> liftA2 LAppend   (transform e) (transform e2)
     Raw.ListIndex  e e2 -> liftA2 LIndex    (transform e) (transform e2)
-    
+
     Raw.ListHead   e    -> fmap LHead       (transform e)
     Raw.ListTail   e    -> fmap LTail       (transform e)
     Raw.ListNull   e    -> fmap LNull       (transform e)
@@ -183,5 +183,4 @@ transform exp = case exp of
 
 -- Translate a raw tree into the id tree with annotated identifiers
 annotateVars :: Raw.Exp -> Exp
-annotateVars e = runReader (evalStateT (runId(transform e)) 0) HM.empty
-
+annotateVars e = runReader (evalStateT (runId (transform e)) 0) HM.empty
