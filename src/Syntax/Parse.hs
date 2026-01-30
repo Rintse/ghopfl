@@ -1,9 +1,9 @@
 module Syntax.Parse where
 
-import Syntax.Raw.Par
-import Syntax.Raw.Lex
 import Syntax.Raw.Abs
 import Syntax.Raw.ErrM
+import Syntax.Raw.Lex
+import Syntax.Raw.Par
 import Tools.VerbPrint
 
 import Control.Exception
@@ -16,11 +16,11 @@ myLLexer = myLexer
 type ParseMonad a = IO (Either SomeException a)
 
 -- Custom parsing exception
-data ParseException 
-    = DrawListException 
+data ParseException
+    = DrawListException
     | EnvironmentException
     | DepthException
-   deriving (Show, Typeable)
+    deriving (Show, Typeable)
 instance Exception ParseException
 
 -- Parses contents of given input file
@@ -48,6 +48,6 @@ parseExp s = do
 
 -- Parses the environment if such an argument is given
 parseEnv :: String -> IO Environment
-parseEnv s = case pEnvironment (myLLexer s) of 
+parseEnv s = case pEnvironment (myLLexer s) of
     Bad s -> throw EnvironmentException
     Ok ev -> return ev

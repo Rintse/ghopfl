@@ -1,43 +1,50 @@
 module Main where
 
 import Args
-import Syntax.Parse
-import Semantics.Evaluation
-import Preprocess.Definitions
+import Control.Monad (unless, when)
+import Control.Monad.Reader
 import Preprocess.AnnotateVars
+import Preprocess.Definitions
+import Semantics.Evaluation
+import Syntax.Parse
+import System.Console.GetOpt
+import System.Environment (getArgs)
+import System.Exit
 import Tools.Treeify
 
-import Control.Monad.Reader
-import System.Environment ( getArgs )
-import Control.Monad ( when, unless )
-import System.Console.GetOpt
-import System.Exit
+parseArgs :: IO Options
+parseArgs = do
+    args <- getArgs
+    let (optArgs, nonOpts, errs) = getOpt RequireOrder Args.options args
+
+    unless
+        (null errs)
+        ( do
+            putStrLn "The were errors parsing the arguments:"
+            mapM_ putStr errs >> exitFailure
+        )
+
+    foldl (>>=) (return defaultOpts) optArgs
 
 main :: IO ()
 main = do
-    args <- getArgs -- Get and parse options
-    let (optArgs, nonOpts, errs) = getOpt RequireOrder Args.options args
+    opts <- parseArgs
+    let Options
+            { optVerbose = verb
+            , optInput = input
+            , optEval = eval
+            , optEnv = env
+            , optDraws = draws
+            , optDepth = depth
+            } = opts
 
-    -- Errors parsing arguments
-    unless (null errs) ( do
-        putStrLn "The were errors parsing the arguments:"
-        mapM_ putStr errs >> exitFailure )
-
-    opts <- foldl (>>=) (return defaultOpts) optArgs
-
-    let Options {   optVerbose  = verb,     optInput    = input,
-                    optEval     = eval,     optEnv      = env,
-                    optDraws    = draws,    optDepth    = depth     } = opts
-    
     -- Parse input into a program AST
     prog <- input >>= parse verb
-   
     -- Preprocess raw AST into one expression
     withDefinitions <- handleDefs prog
     let exp = annotateVars withDefinitions
 
     -- Show the result
     showProg verb exp
-
     -- Evaluate if requested
     when eval $ evaluate verb exp depth draws env

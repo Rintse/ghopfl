@@ -12,14 +12,14 @@ import Syntax.Raw.Abs
 
 -- Add prefixes to the builtins
 builtinsRaw =
-  BOther.builtins
-    ++ BMath.builtins
-    ++ BStream.builtins
-    ++ BConat.builtins
-    ++ BRandom.builtins
-    ++ BDelRes.builtins
+    BOther.builtins
+        ++ BMath.builtins
+        ++ BStream.builtins
+        ++ BConat.builtins
+        ++ BRandom.builtins
+        ++ BDelRes.builtins
 
 parseBuiltins :: [Assignment]
 parseBuiltins = do
-  let toAssignment (name, text) = Assign (Ident name) (TSub "") (parseExp text)
-  map toAssignment builtinsRaw
+    let toAssignment (name, text) = Assign (Ident name) (TSub "") (parseExp text)
+    map toAssignment builtinsRaw
