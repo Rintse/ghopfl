@@ -1,7 +1,7 @@
 module Preprocess.Builtins.Math where
 
 builtins =
-  [ ("exp", "λ x . 2.71828 ^ x)"),
+  [ ("exp", "λ x . 2.71828 ^ x"),
     ("min", "λ x . λ y . if ( x < y ) then x else y"),
     ("max", "λ x . λ y . if ( x > y ) then x else y"),
     ("odd", "λ x . x % 2 = 1"),

@@ -42,33 +42,33 @@ inDef l a = map (\(Assign x o t) -> Assign x o (runDef t a)) l
 
 -- Perform all definition subs in the definitions after it
 inDefs :: [Assignment] -> [Assignment]
-inDefs [] = []
-inDefs [a] = [a]
 inDefs (a : l) = a : inDefs (inDef l a)
+inDefs a = a
 
 toSet :: [Assignment] -> Set.Set String
 toSet l = Set.fromList $ map (\(Assign (Ident x) _ _) -> x) l
 
 -- Perform definition substitutions for a list of defs
 handleDefs :: Prg -> IO Exp
-handleDefs (Prog e) = return $ foldl runDef e $ inDefs builtins
+handleDefs (Prog e) = return $ foldl runDef e $ inDefs parseBuiltins
 handleDefs p@(DefProg (Env l) e) = do
   let builtins = parseBuiltins
-  let builtinNames = Set.fromList $ map fst builtins
-  let envNames = Set.fromList $ map (\(Assign (Ident s) a b) -> s) l
+
+  let usedNames = map (\(Assign (Ident s) a b) -> s)
+  let builtinNames = Set.fromList $ usedNames builtins
+  let envNames = Set.fromList $ usedNames l
   let usedBuiltinNames = Set.intersection builtinNames envNames
 
   unless
     (null usedBuiltinNames)
     ( do
-        putStrLn "Error. Used reserved name of builtin:"
+        putStrLn "Error. Used reserved name:"
         mapM_ putStrLn (Set.toList usedBuiltinNames)
         exitFailure
     )
 
   -- Expand programmers own definitions
   let customDefs = foldl runDef e $ inDefs l
-
   -- Expand the builtin definitions
   return $ foldl runDef customDefs $ inDefs builtins
 
