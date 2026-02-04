@@ -44,16 +44,11 @@ custom-setup:
   - Cabal
   - process
 
-library:
-  source-dirs: src
-
 executables:
   ghopfl-exe:
     main:                Main.hs
-    source-dirs:         app
+    source-dirs:         src
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    dependencies:
-    - ghopfl
