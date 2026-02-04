@@ -1,7 +1,7 @@
 module Semantics.Typing where
 
 import Syntax.Expression
-import TypeSyntax.RawTypes.Abs
+import Syntax.Types.Abs
 
 -- https://en.wikipedia.org/wiki/Hindley–Milner_type_system#An_inference_algorithm
 

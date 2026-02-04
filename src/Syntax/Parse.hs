@@ -1,9 +1,9 @@
 module Syntax.Parse where
 
-import Syntax.Raw.Abs
-import Syntax.Raw.ErrM
-import Syntax.Raw.Lex
-import Syntax.Raw.Par
+import Syntax.Exp.Abs
+import Syntax.Exp.ErrM
+import Syntax.Exp.Lex
+import Syntax.Exp.Par
 import Tools.VerbPrint
 
 import Control.Exception

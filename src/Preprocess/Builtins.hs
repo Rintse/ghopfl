@@ -8,7 +8,7 @@ import qualified Preprocess.Builtins.Other as BOther (builtins)
 import qualified Preprocess.Builtins.Random as BRandom (builtins)
 import qualified Preprocess.Builtins.Stream as BStream (builtins)
 import Syntax.Parse (parseExp)
-import Syntax.Raw.Abs
+import Syntax.Exp.Abs
 
 -- Add prefixes to the builtins
 builtinsRaw =

@@ -6,7 +6,7 @@
 module Syntax.Expression where
 
 import Syntax.Number
-import qualified Syntax.Raw.Abs as Raw
+import qualified Syntax.Exp.Abs as Raw
 
 import Data.Functor.Foldable.TH
 

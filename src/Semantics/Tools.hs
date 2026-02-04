@@ -20,8 +20,8 @@ import Semantics.Sampling
 import Semantics.Values
 import Syntax.Expression
 import Syntax.Number
-import qualified Syntax.Raw.Abs as Raw
-import Syntax.Raw.ErrM
+import qualified Syntax.Exp.Abs as Raw
+import Syntax.Exp.ErrM
 
 -- A monad for pogram evaluation, containing:
 --   - A reader with (a map from vars to their values, and the evaluation depth)

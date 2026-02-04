@@ -12,7 +12,7 @@ import Debug.Trace
 import Preprocess.Builtins (parseBuiltins)
 import Semantics.Substitution
 import Syntax.AbsF
-import Syntax.Raw.Abs
+import Syntax.Exp.Abs
 import System.Exit
 
 -- Perform a single definition substitution

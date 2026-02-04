@@ -4,7 +4,7 @@
 module Args where
 
 import Syntax.Parse
-import Syntax.Raw.Abs
+import Syntax.Exp.Abs
 
 import Control.Exception
 import Data.Char

@@ -7,7 +7,7 @@
 
 module Syntax.AbsF where
 
-import Syntax.Raw.Abs
+import Syntax.Exp.Abs
 
 import Data.Functor.Foldable.TH
 

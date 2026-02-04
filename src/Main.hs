@@ -6,13 +6,13 @@ import Control.Monad.Reader
 import Preprocess.AnnotateVars
 import Preprocess.Definitions
 import Semantics.Evaluation
-import TypeSyntax.RawTypes.Print as Type
 import Syntax.Parse
+import Syntax.Types.Print as TypePrint
 import Semantics.Typing
 import System.Console.GetOpt
 import System.Environment (getArgs)
 import System.Exit
-import Tools.Treeify
+import Tools.Treeify (showProg)
 
 parseArgs :: IO Options
 parseArgs = do
@@ -50,7 +50,7 @@ main = do
 
     -- Type check
     let t = typeCheck exp
-    putStrLn $ Type.printTree t
+    putStrLn $ TypePrint.printTree t
 
     -- Show the result
     showProg verb exp

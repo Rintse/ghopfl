@@ -23,7 +23,7 @@ import Semantics.Tools
 import Semantics.Values
 import Syntax.Expression
 import Syntax.Number
-import qualified Syntax.Raw.Abs as Raw
+import qualified Syntax.Exp.Abs as Raw
 import Tools.Treeify
 import Tools.VerbPrint
 
