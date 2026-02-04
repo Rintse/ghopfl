@@ -6,7 +6,9 @@ import Control.Monad.Reader
 import Preprocess.AnnotateVars
 import Preprocess.Definitions
 import Semantics.Evaluation
+import TypeSyntax.RawTypes.Print as Type
 import Syntax.Parse
+import Semantics.Typing
 import System.Console.GetOpt
 import System.Environment (getArgs)
 import System.Exit
@@ -21,7 +23,8 @@ parseArgs = do
         (null errs)
         ( do
             putStrLn "The were errors parsing the arguments:"
-            mapM_ putStr errs >> exitFailure
+            mapM_ putStr errs
+            exitFailure
         )
 
     foldl (>>=) (return defaultOpts) optArgs
@@ -40,9 +43,14 @@ main = do
 
     -- Parse input into a program AST
     prog <- input >>= parse verb
+
     -- Preprocess raw AST into one expression
     withDefinitions <- handleDefs prog
     let exp = annotateVars withDefinitions
+
+    -- Type check
+    let t = typeCheck exp
+    putStrLn $ Type.printTree t
 
     -- Show the result
     showProg verb exp

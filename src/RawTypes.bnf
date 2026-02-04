@@ -1,0 +1,27 @@
+-- Syntax of GHOPFL types defined in LBNF format
+-- To be processed into a parser and lexer using BNFC
+
+entrypoints Environment, Exp, Prg;
+comment     "#" ;
+
+-- Tokens
+token       TLater   ('▶' | '|''>') ;
+token       TBox     ('█' | '['']') ;
+token       TMu      ('μ' | '|''u') ;
+token       TRarrow  ('→' | '-''>') ;
+token       TSingle  ( '𝟙' | '{''*''}' ) ;
+
+Bool.       Base    ::= "bool" ;
+Real.       Base    ::= "real" ;
+Var.        Base    ::= Ident ;
+
+-- TODO: naming?
+Leaf.       Ty10    ::= Base ; 
+Prod.       Ty9     ::= Ty9 "x" Ty10 ; 
+Coprod.     Ty8     ::= Ty8 "+" Ty9 ; 
+Func.       Ty7     ::= Ty7 TRarrow Ty8 ; 
+TyVar.      Ty6     ::= TMu Ident "." Ty7 ;
+TyLater.    Ty5     ::= TLater Ty6 ;
+TyBox.      Ty5     ::= TBox Ty6 ;
+
+coercions Ty 10 ;

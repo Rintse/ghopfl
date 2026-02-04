@@ -16,7 +16,6 @@ import System.Exit
 import System.IO as IO
 import Text.Read (readMaybe)
 
--- The option list
 data Options = Options
     { optVerbose :: Bool
     , optInput :: IO String
@@ -26,7 +25,6 @@ data Options = Options
     , optDepth :: Integer
     }
 
--- The default options
 defaultOpts :: Options
 defaultOpts =
     Options
@@ -90,22 +88,18 @@ readDraws arg opt = do
             exitFailure
         Right val -> return opt{optDraws = val}
 
--- Sets the verbosity
 readVerb :: Options -> IO Options
 readVerb opt = return opt{optVerbose = True}
 
--- Sets evaluation
 readEval :: Options -> IO Options
 readEval opt = return opt{optEval = True}
 
--- Outputs a help message
 putHelp :: Options -> IO Options
 putHelp opt = do
     prg <- getProgName
     hPutStrLn stderr (usageInfo prg options)
     exitSuccess
 
--- The options as functions to be threaded through
 options :: [OptDescr (Options -> IO Options)]
 options =
     [ Option
