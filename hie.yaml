@@ -1,6 +1,4 @@
 cradle:
   stack:
-    - path: "./app/Main.hs"
+    - path: "./src/Main.hs"
       component: "ghopfl:ghopfl-exe"
-    - path: "./src"
-      component: "ghopfl:lib"
