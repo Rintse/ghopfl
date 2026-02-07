@@ -1,5 +1,5 @@
 GRAMMER_FILES = Abs.hs ErrM.hs Lex.x Par.y Print.hs Skel.hs
-UNNEEDED = Test.hs Doc.txt Abs.hs.bak
+UNNEEDED = Test.hs Doc.txt *.bak
 
 exp_files = $(addprefix src/Syntax/Exp/,$(GRAMMER_FILES))
 types_files = $(addprefix src/Syntax/Types/,$(GRAMMER_FILES))

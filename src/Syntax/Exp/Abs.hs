@@ -37,15 +37,6 @@ data Exp
     | Snd Exp
     | InL Exp
     | InR Exp
-    | ListHead Exp
-    | ListTail Exp
-    | ListNull Exp
-    | ListLength Exp
-    | ListFold Exp Exp Exp
-    | ListMap Exp Exp
-    | ListElem Exp Exp
-    | ListTake Exp Exp
-    | ListDrop Exp Exp
     | App Exp Exp
     | LApp Exp TLApp Exp
     | ListCons Exp Exp

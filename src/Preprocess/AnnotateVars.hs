@@ -171,21 +171,6 @@ transform exp = case exp of
         r2 <- local (pushVar f cur) $ transform e
         return $ Rec r1 r2
 
-    -- Lists
-    Raw.EList (Raw.List l) -> List <$> mapM transform l
-    Raw.ListCons e e2 -> liftA2 LCons (transform e) (transform e2)
-    Raw.ListAppend e e2 -> liftA2 LAppend (transform e) (transform e2)
-    Raw.ListIndex e e2 -> liftA2 LIndex (transform e) (transform e2)
-    Raw.ListHead e -> fmap LHead (transform e)
-    Raw.ListTail e -> fmap LTail (transform e)
-    Raw.ListNull e -> fmap LNull (transform e)
-    Raw.ListLength e -> fmap LLength (transform e)
-    Raw.ListMap e e2 -> liftA2 LMap (transform e) (transform e2)
-    Raw.ListElem e e2 -> liftA2 LElem (transform e) (transform e2)
-    Raw.ListTake e e2 -> liftA2 LTake (transform e) (transform e2)
-    Raw.ListDrop e e2 -> liftA2 LDrop (transform e) (transform e2)
-    Raw.ListFold e e2 e3 -> liftA3 LFold (transform e) (transform e2) (transform e3)
-
 -- Translate a raw tree into the id tree with annotated identifiers
 annotateVars :: Raw.Exp -> Exp
 annotateVars e = runReader (evalStateT (runId (transform e)) 0) HM.empty

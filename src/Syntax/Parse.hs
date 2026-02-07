@@ -42,8 +42,10 @@ parseExp :: String -> Exp
 parseExp s = do
     let ts = myLLexer s
     case pExp ts of
-        Bad r -> do
-            error $ "Parse error. Tokens still in stream:\n" ++ show ts
+        Bad r -> error $ 
+            "Bulitin parse error: " ++ r 
+            ++ "\nBuiltin:\n" ++ s
+            ++ "\nTokens in stream:\n" ++ show ts
         Ok r -> r
 
 -- Parses the environment if such an argument is given

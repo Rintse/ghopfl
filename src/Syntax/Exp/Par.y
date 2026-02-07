@@ -47,40 +47,31 @@ import Syntax.Exp.Lex
   '^'       { PT _ (TS _ 18)      }
   'box'     { PT _ (TS _ 19)      }
   'boxI'    { PT _ (TS _ 20)      }
-  'drop'    { PT _ (TS _ 21)      }
-  'elem'    { PT _ (TS _ 22)      }
-  'else'    { PT _ (TS _ 23)      }
-  'false'   { PT _ (TS _ 24)      }
-  'fix'     { PT _ (TS _ 25)      }
-  'foldl'   { PT _ (TS _ 26)      }
-  'force'   { PT _ (TS _ 27)      }
-  'fst'     { PT _ (TS _ 28)      }
-  'head'    { PT _ (TS _ 29)      }
-  'if'      { PT _ (TS _ 30)      }
-  'in'      { PT _ (TS _ 31)      }
-  'in:'     { PT _ (TS _ 32)      }
-  'inL'     { PT _ (TS _ 33)      }
-  'inR'     { PT _ (TS _ 34)      }
-  'length'  { PT _ (TS _ 35)      }
-  'let'     { PT _ (TS _ 36)      }
-  'map'     { PT _ (TS _ 37)      }
-  'match'   { PT _ (TS _ 38)      }
-  'next'    { PT _ (TS _ 39)      }
-  'normal'  { PT _ (TS _ 40)      }
-  'null'    { PT _ (TS _ 41)      }
-  'out'     { PT _ (TS _ 42)      }
-  'prev'    { PT _ (TS _ 43)      }
-  'prevI'   { PT _ (TS _ 44)      }
-  'rand'    { PT _ (TS _ 45)      }
-  'snd'     { PT _ (TS _ 46)      }
-  'tail'    { PT _ (TS _ 47)      }
-  'take'    { PT _ (TS _ 48)      }
-  'then'    { PT _ (TS _ 49)      }
-  'true'    { PT _ (TS _ 50)      }
-  'unbox'   { PT _ (TS _ 51)      }
-  '{'       { PT _ (TS _ 52)      }
-  '|'       { PT _ (TS _ 53)      }
-  '}'       { PT _ (TS _ 54)      }
+  'else'    { PT _ (TS _ 21)      }
+  'false'   { PT _ (TS _ 22)      }
+  'fix'     { PT _ (TS _ 23)      }
+  'force'   { PT _ (TS _ 24)      }
+  'fst'     { PT _ (TS _ 25)      }
+  'if'      { PT _ (TS _ 26)      }
+  'in'      { PT _ (TS _ 27)      }
+  'in:'     { PT _ (TS _ 28)      }
+  'inL'     { PT _ (TS _ 29)      }
+  'inR'     { PT _ (TS _ 30)      }
+  'let'     { PT _ (TS _ 31)      }
+  'match'   { PT _ (TS _ 32)      }
+  'next'    { PT _ (TS _ 33)      }
+  'normal'  { PT _ (TS _ 34)      }
+  'out'     { PT _ (TS _ 35)      }
+  'prev'    { PT _ (TS _ 36)      }
+  'prevI'   { PT _ (TS _ 37)      }
+  'rand'    { PT _ (TS _ 38)      }
+  'snd'     { PT _ (TS _ 39)      }
+  'then'    { PT _ (TS _ 40)      }
+  'true'    { PT _ (TS _ 41)      }
+  'unbox'   { PT _ (TS _ 42)      }
+  '{'       { PT _ (TS _ 43)      }
+  '|'       { PT _ (TS _ 44)      }
+  '}'       { PT _ (TS _ 45)      }
   L_Ident   { PT _ (TV $$)        }
   L_doubl   { PT _ (TD $$)        }
   L_integ   { PT _ (TI $$)        }
@@ -174,15 +165,6 @@ Exp11
   | 'snd' Exp12 { Syntax.Exp.Abs.Snd $2 }
   | 'inL' Exp12 { Syntax.Exp.Abs.InL $2 }
   | 'inR' Exp12 { Syntax.Exp.Abs.InR $2 }
-  | 'head' Exp12 { Syntax.Exp.Abs.ListHead $2 }
-  | 'tail' Exp12 { Syntax.Exp.Abs.ListTail $2 }
-  | 'null' Exp12 { Syntax.Exp.Abs.ListNull $2 }
-  | 'length' Exp12 { Syntax.Exp.Abs.ListLength $2 }
-  | 'foldl' Exp12 Exp12 Exp12 { Syntax.Exp.Abs.ListFold $2 $3 $4 }
-  | 'map' Exp12 Exp12 { Syntax.Exp.Abs.ListMap $2 $3 }
-  | 'elem' Exp12 Exp12 { Syntax.Exp.Abs.ListElem $2 $3 }
-  | 'take' Exp12 Exp12 { Syntax.Exp.Abs.ListTake $2 $3 }
-  | 'drop' Exp12 Exp12 { Syntax.Exp.Abs.ListDrop $2 $3 }
   | Exp12 { $1 }
 
 Exp10 :: { Syntax.Exp.Abs.Exp }

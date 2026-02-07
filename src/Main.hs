@@ -46,9 +46,9 @@ main = do
     withDefinitions <- handleDefs prog
     let exp = annotateVars withDefinitions
 
-    case runExcept $ typeCheck exp of
-        Left msg -> putStrLn $ "Program failed to type check: " ++ msg
-        Right t -> putStrLn $ TypePrint.printTree t
+    -- case runExcept $ typeCheck exp of
+    --     Left msg -> putStrLn $ "Program failed to type check: " ++ msg
+    --     Right t -> putStrLn $ TypePrint.printTree t
 
     showProg verb exp
     when eval $ 

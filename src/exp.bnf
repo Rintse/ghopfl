@@ -62,19 +62,6 @@ InL.        Exp11   ::= "inL" Exp12 ;
 InR.        Exp11   ::= "inR" Exp12 ;
 
 
--- List operations
-
-ListHead.   Exp11   ::= "head"      Exp12 ;
-ListTail.   Exp11   ::= "tail"      Exp12 ;
-ListNull.   Exp11   ::= "null"      Exp12 ;
-ListLength. Exp11   ::= "length"    Exp12 ;
-
-ListFold.   Exp11   ::= "foldl"     Exp12 Exp12 Exp12 ;
-ListMap.    Exp11   ::= "map"       Exp12 Exp12 ;
-ListElem.   Exp11   ::= "elem"      Exp12 Exp12 ;
-ListTake.   Exp11   ::= "take"      Exp12 Exp12 ;
-ListDrop.   Exp11   ::= "drop"      Exp12 Exp12 ;
-
 -- (Delayed) application
 App.        Exp10   ::= Exp10 Exp11 ;
 LApp.       Exp10   ::= Exp10 TLApp Exp11;

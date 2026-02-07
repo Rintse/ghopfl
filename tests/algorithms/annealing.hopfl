@@ -11,15 +11,29 @@ let
     # 0 - 1     Here the optimal solution is to cut 
     # | \ |     such that the two partitions are {0, 3}
     # 3 - 2     and {1, 2} (4 cuts), as adjacency list:
-    graph ← [ (0,1), (0,2), (0,3), (1,2), (2,3) ] ;
+    graph ← (
+        cons (0,1) ( 
+            cons (0,2) (
+                cons (0,3) (
+                    cons (1,2) (
+                        cons (2,3) null
+                    )
+                )
+            )
+        )
+    );
     
-    # Initial solution
-    init_s ← [ true, true, false, false ] ;
-    n_vertices ← length init_s ;
+    # Initial solution: TTFF
+    init_s ← (
+        cons true ( 
+            cons true ( 
+                cons false (
+                    cons false null 
+                )
+            ) 
+        )
+    );
     
-    # Initial temperature
-    init_temp ← 1.0 ; 
-
     # Returns 1.0 if s cuts edge, 0.0 otherwise
     # An edge is cut if its verteces are in different partitions
     cuts ← ( λ s . λ edge .
@@ -27,7 +41,7 @@ let
     ) ;
 
     # The amount of cuts a solution makes
-    cut_count ← ( λ s . foldl add 0 ( map ( cuts s ) graph ) ) ;
+    cut_count ← ( λ s . foldr add 0 ( map ( cuts s ) graph ) ) ;
     
     # The evaluation function should be lower for better solutions
     eval ← ( λ s . 1.0 / ( cut_count s ) ) ;
@@ -58,7 +72,8 @@ let
             )
     ) ;
     
-    # Gets the temperature for round k
+    # Temperature goes as 1/x with x the annealing iteration
+    init_temp ← 1.0 ; 
     get_temp ← ( λ k . init_temp / (k + 1) ) ; 
 
     # The optimization stream

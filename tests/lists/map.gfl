@@ -1,0 +1,8 @@
+# Expected result: list of squares up to 25
+# stack run -- -i tests/lists/map.gfl -E -v -n 5 
+
+let 
+    f ← \x . x * x ;
+    l ← cons 5 ( cons 4 ( cons 3 ( cons 2 ( cons 1 null ) ) ) ) ;
+
+in: force (map f l)

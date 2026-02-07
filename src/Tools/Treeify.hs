@@ -24,20 +24,6 @@ instance Treeish Assignment where
 
 instance Treeish Exp where
     toTree exp = case exp of
-        LCons e1 e2 -> Node "List Cons" [toTree e1, toTree e2]
-        LAppend e1 e2 -> Node "List Append" [toTree e1, toTree e2]
-        LIndex e1 e2 -> Node "List Index" [toTree e1, toTree e2]
-        LHead e -> Node "List Head" [toTree e]
-        LTail e -> Node "List Tail" [toTree e]
-        LNull e -> Node "List Null" [toTree e]
-        LLength e -> Node "List Length" [toTree e]
-        LFold e1 e2 e3 -> Node "List Fold" [toTree e1, toTree e2, toTree e3]
-        LMap e1 e2 -> Node "List Map" [toTree e1, toTree e2]
-        LElem e1 e2 -> Node "List Elem" [toTree e1, toTree e2]
-        LTake e1 e2 -> Node "List Take" [toTree e1, toTree e2]
-        LDrop e1 e2 -> Node "List Drop" [toTree e1, toTree e2]
-        -- Lists
-        List l -> Node "List" (map toTree l)
         -- Regular expressions
         Single -> Node "()" []
         Var x -> toTree x

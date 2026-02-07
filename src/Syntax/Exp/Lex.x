@@ -215,35 +215,26 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "fst" 28
-    (b "=" 14
-       (b "," 7
-          (b "*" 4
-             (b "(" 2 (b "%" 1 N N) (b ")" 3 N N)) (b "++" 6 (b "+" 5 N N) N))
-          (b ":" 11
-             (b "." 9 (b "-" 8 N N) (b "/" 10 N N))
-             (b "<" 13 (b ";" 12 N N) N)))
-       (b "drop" 21
-          (b "^" 18
-             (b "[" 16 (b ">" 15 N N) (b "]" 17 N N))
-             (b "boxI" 20 (b "box" 19 N N) N))
-          (b "fix" 25
-             (b "else" 23 (b "elem" 22 N N) (b "false" 24 N N))
-             (b "force" 27 (b "foldl" 26 N N) N))))
-    (b "out" 42
-       (b "length" 35
-          (b "in:" 32
-             (b "if" 30 (b "head" 29 N N) (b "in" 31 N N))
-             (b "inR" 34 (b "inL" 33 N N) N))
-          (b "next" 39
-             (b "map" 37 (b "let" 36 N N) (b "match" 38 N N))
-             (b "null" 41 (b "normal" 40 N N) N)))
-       (b "then" 49
-          (b "snd" 46
-             (b "prevI" 44 (b "prev" 43 N N) (b "rand" 45 N N))
-             (b "take" 48 (b "tail" 47 N N) N))
-          (b "{" 52
-             (b "unbox" 51 (b "true" 50 N N) N) (b "}" 54 (b "|" 53 N N) N))))
+  b "fix" 23
+    (b ";" 12
+       (b "++" 6
+          (b ")" 3 (b "(" 2 (b "%" 1 N N) N) (b "+" 5 (b "*" 4 N N) N))
+          (b "." 9 (b "-" 8 (b "," 7 N N) N) (b ":" 11 (b "/" 10 N N) N)))
+       (b "^" 18
+          (b ">" 15 (b "=" 14 (b "<" 13 N N) N) (b "]" 17 (b "[" 16 N N) N))
+          (b "else" 21 (b "boxI" 20 (b "box" 19 N N) N) (b "false" 22 N N))))
+    (b "out" 35
+       (b "inL" 29
+          (b "if" 26
+             (b "fst" 25 (b "force" 24 N N) N) (b "in:" 28 (b "in" 27 N N) N))
+          (b "match" 32
+             (b "let" 31 (b "inR" 30 N N) N)
+             (b "normal" 34 (b "next" 33 N N) N)))
+       (b "true" 41
+          (b "rand" 38
+             (b "prevI" 37 (b "prev" 36 N N) N)
+             (b "then" 40 (b "snd" 39 N N) N))
+          (b "|" 44 (b "{" 43 (b "unbox" 42 N N) N) (b "}" 45 N N))))
   where
   b s n = B bs (TS bs n)
     where

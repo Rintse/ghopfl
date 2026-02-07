@@ -1,11 +1,5 @@
 -- Defines the values for the big-step semantics
 -- implemented in the Evaluation module
-{-# LANGUAGE DeriveFoldable #-}
--- Defines the values for the big-step semantics
--- implemented in the Evaluation module
-{-# LANGUAGE DeriveFunctor #-}
--- Defines the values for the big-step semantics
--- implemented in the Evaluation module
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -62,12 +56,12 @@ toExp (VInL e) = InL e
 toExp (VInR e) = InR e
 toExp (VThunk e) = e
 toExp (VPair e1 e2) = Pair e1 e2
-toExp (VList l) = List l
 toExp (VNext e) = Next e
 toExp (VOut e) = Out e
 toExp (VBox l e) = Box l e
 toExp (VEPair e1 e2) = Pair (toExp e1) (toExp e2)
 toExp (VEInL e) = InL $ toExp e
 toExp (VEInR e) = InR $ toExp e
+toExp VSingle = Single
 -- Should never be reached
-toExp e = BVal Raw.BFalse
+toExp e = undefined

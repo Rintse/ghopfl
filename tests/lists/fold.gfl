@@ -1,0 +1,11 @@
+let 
+    # l ← cons 5 ( cons 4 ( cons 3 ( cons 2 ( cons 1 null ) ) ) ) ;
+    l <- cons 1 null ;
+    # l <- null ;
+
+    fold <- λ f . λ start . fix r . λ l . match ( out l ) { 
+        inL unit → dres_now start ;
+        inR tup → dres_func2_1 f ( fst tup ) ( r ⊙ snd tup )
+    } 
+
+in: force (fold add 0 l)

@@ -89,15 +89,6 @@ transExp x = case x of
   Syntax.Exp.Abs.Snd exp -> failure x
   Syntax.Exp.Abs.InL exp -> failure x
   Syntax.Exp.Abs.InR exp -> failure x
-  Syntax.Exp.Abs.ListHead exp -> failure x
-  Syntax.Exp.Abs.ListTail exp -> failure x
-  Syntax.Exp.Abs.ListNull exp -> failure x
-  Syntax.Exp.Abs.ListLength exp -> failure x
-  Syntax.Exp.Abs.ListFold exp1 exp2 exp3 -> failure x
-  Syntax.Exp.Abs.ListMap exp1 exp2 -> failure x
-  Syntax.Exp.Abs.ListElem exp1 exp2 -> failure x
-  Syntax.Exp.Abs.ListTake exp1 exp2 -> failure x
-  Syntax.Exp.Abs.ListDrop exp1 exp2 -> failure x
   Syntax.Exp.Abs.App exp1 exp2 -> failure x
   Syntax.Exp.Abs.LApp exp1 tlapp exp2 -> failure x
   Syntax.Exp.Abs.ListCons exp1 exp2 -> failure x
