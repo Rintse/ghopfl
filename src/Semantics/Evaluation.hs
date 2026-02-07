@@ -1,7 +1,7 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 -- Defines a evaluation function for expressions
 -- which implements a call-by-value big-step semantics
-{-# LANGUAGE LambdaCase #-}
 
 -- Small step semantics for guarded HOPFL
 module Semantics.Evaluation where

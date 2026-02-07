@@ -13,6 +13,7 @@ import System.Console.GetOpt
 import System.Environment (getArgs)
 import System.Exit
 import Tools.Treeify (showProg)
+import Control.Monad.Except
 
 parseArgs :: IO Options
 parseArgs = do
@@ -41,18 +42,14 @@ main = do
             , optDepth = depth
             } = opts
 
-    -- Parse input into a program AST
     prog <- input >>= parse verb
-
-    -- Preprocess raw AST into one expression
     withDefinitions <- handleDefs prog
     let exp = annotateVars withDefinitions
 
-    -- Type check
-    let t = typeCheck exp
-    putStrLn $ TypePrint.printTree t
+    case runExcept $ typeCheck exp of
+        Left msg -> putStrLn $ "Program failed to type check: " ++ msg
+        Right t -> putStrLn $ TypePrint.printTree t
 
-    -- Show the result
     showProg verb exp
-    -- Evaluate if requested
-    when eval $ evaluate verb exp depth draws env
+    when eval $ 
+        evaluate verb exp depth draws env
