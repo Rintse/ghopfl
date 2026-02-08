@@ -14,6 +14,7 @@ import Data.Functor.Foldable.TH
 -- some expressions, and allows variables to be annotated with identifiers
 data Exp
     = Single
+    | Trace Exp
     | -- Base types
       Var Ident
     | Val Number

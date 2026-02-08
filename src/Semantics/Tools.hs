@@ -1,7 +1,8 @@
 -- Defines some helper functions for the Evaluation module
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveFunctor #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE TemplateHaskell, RankNTypes #-}
 
 module Semantics.Tools where
 
@@ -20,27 +21,37 @@ import Semantics.Sampling
 import Semantics.Values
 import Syntax.Expression
 import Syntax.Number
-import qualified Syntax.Exp.Abs as Raw
 import Syntax.Exp.ErrM
+import qualified Syntax.Exp.Abs as Raw
+import Control.Lens
 
--- A monad for pogram evaluation, containing:
---   - A reader with (a map from vars to their values, and the evaluation depth)
---   - A State with (a list of random draws, and the density of this execution)
---   - An error monad to express evaluation failure
-newtype EvalMonad a = EvalMonad
-    { evalMonad :: ReaderT (Env, Integer) (StateT (Double, [Double]) (Except String)) a
+-- Environment as hashmap from names to values
+type Env = HashMap String Exp
+
+data EvalContext = EvalContext
+    { _evalVerbosity :: Int
+    , _evalEnv :: Env
+    , _evalDepth :: Integer
+    } deriving ()
+makeLenses ''EvalContext
+
+data ProbilityContext = ProbilityContext
+    { _randomDraws :: [Double]
+    , _evalDensity :: Double
+    }
+makeLenses ''ProbilityContext
+
+newtype EvalMonad a = EvalMona
+    { evalMonad :: ReaderT EvalContext (StateT ProbilityContext (Except String)) a
     }
     deriving
         ( Functor
         , Applicative
         , Monad
-        , MonadReader (Env, Integer)
-        , MonadState (Double, [Double])
+        , MonadReader EvalContext
+        , MonadState ProbilityContext
         , MonadError String
         )
-
--- Environment as hashmap from names to values
-type Env = HashMap String Exp
 
 -- Transform the environment AST into a hashmap
 mkEnv :: Raw.Environment -> Env
@@ -65,27 +76,30 @@ match3 f e1 e2 e3 = (,,) <$> f e1 <*> f e2 <*> f e3
 
 -- Performs a random draw and updates the state monad
 performDraw :: Distribution -> [Double] -> EvalMonad Value
-performDraw dist params =
-    gets snd >>= \case
+performDraw dist params = do
+    draws <- gets $ view randomDraws
+    case draws of
         (c : rest) ->
             let d = pdf dist params c
-             in if
-                    | isNaN d ->
-                        throwError $
-                            "PDF " ++ show (name dist) ++ " not defined for value " ++ show d
-                    | (== 0) d ->
-                        throwError $
-                            "Impossible draw for "
-                                ++ show (name dist)
-                                ++ " with parameters"
-                                ++ show params
-                                ++ ": "
-                                ++ show c
-                                ++ "\nRemaining draws: "
-                                ++ show rest
-                    | otherwise -> do
-                        modify (\(w, _) -> (w * d, rest))
-                        return $ VVal $ Fract c
+            in if
+                | isNaN d ->
+                    throwError $
+                        "PDF " ++ show (name dist)
+                        ++ " not defined for value "
+                        ++ show d
+                | (== 0) d ->
+                    throwError $
+                        "Impossible draw for "
+                            ++ show (name dist)
+                            ++ " with parameters"
+                            ++ show params
+                            ++ ": "
+                            ++ show c
+                            ++ "\nRemaining draws: "
+                            ++ show rest
+                | otherwise -> do
+                    modify (over evalDensity (*d) . set randomDraws rest)
+                    return $ VVal $ Fract c
         _ -> throwError "Draws list too small"
 
 -- Helper functions to evaluate boolean and aritmetic expresions
@@ -153,10 +167,10 @@ forceEval :: (Exp -> EvalMonad Value) -> Value -> EvalMonad Value
 forceEval f = \case
     -- Still refuse to go underneath too many nexts
     VNext e ->
-        asks snd >>= \x ->
+        asks view evalDepth >>= \x ->
             if x == 0
                 then return $ VUNext e
-                else local (second $ subtract 1) (VENext <$> (f e >>= forceEval f))
+                else local (over evalDepth $ subtract 1) (VENext <$> (f e >>= forceEval f))
     VIn e -> VEIn <$> (f e >>= forceEval f)
     VInL e -> VEInL <$> (f e >>= forceEval f)
     VInR e -> VEInR <$> (f e >>= forceEval f)

@@ -5,7 +5,6 @@ module Args where
 
 import Syntax.Parse
 import Syntax.Exp.Abs
-
 import Control.Exception
 import Data.Char
 import Data.List.Split
@@ -17,7 +16,7 @@ import System.IO as IO
 import Text.Read (readMaybe)
 
 data Options = Options
-    { optVerbose :: Bool
+    { optVerbose :: Int
     , optInput :: IO String
     , optEval :: Bool
     , optEnv :: Environment
@@ -28,7 +27,7 @@ data Options = Options
 defaultOpts :: Options
 defaultOpts =
     Options
-        { optVerbose = False
+        { optVerbose = 0
         , optInput = getContents
         , optEval = False
         , optEnv = Env []
@@ -88,8 +87,10 @@ readDraws arg opt = do
             exitFailure
         Right val -> return opt{optDraws = val}
 
-readVerb :: Options -> IO Options
-readVerb opt = return opt{optVerbose = True}
+readVerb :: Maybe String -> Options -> IO Options
+readVerb arg opt = case arg of 
+    Just vs -> return opt{ optVerbose = 1 + length (filter (== 'v') vs) }
+    Nothing -> return opt { optVerbose = 1 }
 
 readEval :: Options -> IO Options
 readEval opt = return opt{optEval = True}
@@ -130,8 +131,8 @@ options =
     , Option
         "v"
         ["verbose"]
-        (NoArg readVerb)
-        "Enable verbose parsing"
+        (OptArg readVerb "vv..")
+        "Enable verbose parsing (repeatable)"
     , Option
         "h"
         ["help"]

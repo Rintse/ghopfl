@@ -23,6 +23,7 @@ build-tools:
 - happy
 
 dependencies:
+- lens
 - base >= 4.7 && < 5
 - array
 - containers
@@ -46,7 +47,7 @@ custom-setup:
 
 executables:
   ghopfl-exe:
-    main:                Main.hs
+    main: Main.hs
     source-dirs:         src
     ghc-options:
     - -threaded

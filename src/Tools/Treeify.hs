@@ -22,10 +22,12 @@ instance Treeish Environment where
 instance Treeish Assignment where
     toTree (Assign x t) = Node "Substitution" [toTree x, toTree t]
 
+-- TODO: is this really needed?
 instance Treeish Exp where
     toTree exp = case exp of
         -- Regular expressions
         Single -> Node "()" []
+        Trace e -> toTree e
         Var x -> toTree x
         Val v -> Node (show v) []
         BVal b -> Node (show b) []
@@ -103,7 +105,7 @@ treeValue v = drawTree $ toTree v
 treeTerm :: Exp -> String
 treeTerm e = drawTree $ toTree e
 
-showProg :: Bool -> Exp -> IO ()
+showProg :: Int -> Exp -> IO ()
 showProg v prog = do
     putStrV v $ "[Abstract Syntax]\n" ++ show prog ++ "\n"
     putStrV v $ "[Tree]\n" ++ treeTerm prog ++ "\n"

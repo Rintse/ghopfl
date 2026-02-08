@@ -5,5 +5,5 @@ module Tools.VerbPrint where
 
 import Control.Monad (when)
 
-putStrV :: Bool -> String -> IO ()
-putStrV v s = when v $ putStrLn s
+putStrV :: Int -> String -> IO ()
+putStrV v s = when ((> 0) v) $ putStrLn s

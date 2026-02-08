@@ -2,6 +2,7 @@
 module Preprocess.Builtins.DelayedResult where
 
 -- Defines the type of a delayed result, and some functions on them
+-- μ X . A + ▶ X
 
 builtins =
   [ -- Value is available now
@@ -25,14 +26,14 @@ builtins =
     -- Applies a binary operation to one delayed result and one regular data type
     ( "dres_func2_1",
       """
-      λ func . fix f . λ a . λ x .
+      λ func . λ a . fix f . λ x .
           match ( out x ) {
               inL value → dres_now ( func a value ) ;
               inR delay → dres_later ( f ⊙ next a ⊙ delay )
           }
       """
     ),
-    -- TODO: non-recursive imports?
+    -- TODO: this exists twice
     ("flip2", "λ f . λ a1 . λ a2 . f a2 a1"),
     -- Applies a binary function to two delayed results
     ( "dres_func2",

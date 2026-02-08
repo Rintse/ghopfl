@@ -166,6 +166,7 @@ instance Print Syntax.Exp.Abs.BConst where
 
 instance Print Syntax.Exp.Abs.Exp where
   prt i = \case
+    Syntax.Exp.Abs.Trace exp -> prPrec i 13 (concatD [doc (showString "trace"), prt 13 exp])
     Syntax.Exp.Abs.Single tsingle -> prPrec i 13 (concatD [prt 0 tsingle])
     Syntax.Exp.Abs.Var id_ -> prPrec i 13 (concatD [prt 0 id_])
     Syntax.Exp.Abs.DVal d -> prPrec i 13 (concatD [prt 0 d])

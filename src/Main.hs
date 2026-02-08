@@ -20,8 +20,7 @@ parseArgs = do
     args <- getArgs
     let (optArgs, nonOpts, errs) = getOpt RequireOrder Args.options args
 
-    unless
-        (null errs)
+    unless (null errs) 
         ( do
             putStrLn "The were errors parsing the arguments:"
             mapM_ putStr errs
@@ -34,15 +33,15 @@ main :: IO ()
 main = do
     opts <- parseArgs
     let Options
-            { optVerbose = verb
+            { optVerbose = verbosity
             , optInput = input
             , optEval = eval
             , optEnv = env
             , optDraws = draws
             , optDepth = depth
             } = opts
-
-    prog <- input >>= parse verb
+    
+    prog <- input >>= parse verbosity
     withDefinitions <- handleDefs prog
     let exp = annotateVars withDefinitions
 
@@ -50,6 +49,6 @@ main = do
     --     Left msg -> putStrLn $ "Program failed to type check: " ++ msg
     --     Right t -> putStrLn $ TypePrint.printTree t
 
-    showProg verb exp
+    showProg verbosity exp
     when eval $ 
-        evaluate verb exp depth draws env
+        evaluate verbosity exp depth draws env

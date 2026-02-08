@@ -21,6 +21,8 @@ token       TSingle ( '𝟙' | '{''*''}' ) ;
 BTrue.      BConst  ::= "true" ;
 BFalse.     BConst  ::= "false" ;
 
+Trace.      Exp13   ::= "trace" Exp13 ;
+
 -- Terms
 Single.     Exp13   ::= TSingle ;
 Var.        Exp13   ::= Ident ;

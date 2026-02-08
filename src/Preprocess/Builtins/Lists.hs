@@ -1,11 +1,8 @@
 {-# LANGUAGE MultilineStrings #-}
-module Preprocess.Builtins.Other where
+module Preprocess.Builtins.Lists where
 
 builtins =
-  [ ("flip2", "λ f . λ a1 . λ a2 . f a2 a1"),
-    ("curry", "λ f . λ pair . f ( fst pair ) ( snd pair )"),
-    ("uncurry", "λ f . λ a1 . λ a2 . f ( a1, a2 )"),
-    ("null", "in ( inL 𝟙 )"),
+  [ ("null", "in ( inL 𝟙 )"),
     ("cons", "λ item . λ l . in ( inR ( item, next l ) )"),
     ("map", 
         """

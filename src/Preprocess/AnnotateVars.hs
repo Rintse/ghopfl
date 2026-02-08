@@ -100,6 +100,7 @@ transform exp = case exp of
     Raw.IVal v -> return $ Val $ Whole v
     -- Simple 1-to-1 correspondence.
     Raw.Single t -> return Single
+    Raw.Trace e -> fmap Trace (transform e)
     Raw.BVal v -> return $ BVal v
     Raw.Unbox e -> fmap Unbox (transform e)
     Raw.Force e -> fmap Force (transform e)

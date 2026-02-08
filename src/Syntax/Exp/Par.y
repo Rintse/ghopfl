@@ -67,11 +67,12 @@ import Syntax.Exp.Lex
   'rand'    { PT _ (TS _ 38)      }
   'snd'     { PT _ (TS _ 39)      }
   'then'    { PT _ (TS _ 40)      }
-  'true'    { PT _ (TS _ 41)      }
-  'unbox'   { PT _ (TS _ 42)      }
-  '{'       { PT _ (TS _ 43)      }
-  '|'       { PT _ (TS _ 44)      }
-  '}'       { PT _ (TS _ 45)      }
+  'trace'   { PT _ (TS _ 41)      }
+  'true'    { PT _ (TS _ 42)      }
+  'unbox'   { PT _ (TS _ 43)      }
+  '{'       { PT _ (TS _ 44)      }
+  '|'       { PT _ (TS _ 45)      }
+  '}'       { PT _ (TS _ 46)      }
   L_Ident   { PT _ (TV $$)        }
   L_doubl   { PT _ (TD $$)        }
   L_integ   { PT _ (TI $$)        }
@@ -134,7 +135,8 @@ BConst
 
 Exp13 :: { Syntax.Exp.Abs.Exp }
 Exp13
-  : TSingle { Syntax.Exp.Abs.Single $1 }
+  : 'trace' Exp13 { Syntax.Exp.Abs.Trace $2 }
+  | TSingle { Syntax.Exp.Abs.Single $1 }
   | Ident { Syntax.Exp.Abs.Var $1 }
   | Double { Syntax.Exp.Abs.DVal $1 }
   | Integer { Syntax.Exp.Abs.IVal $1 }

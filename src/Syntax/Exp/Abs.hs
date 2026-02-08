@@ -14,7 +14,8 @@ data BConst = BTrue | BFalse
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Exp
-    = Single TSingle
+    = Trace Exp
+    | Single TSingle
     | Var Ident
     | DVal Double
     | IVal Integer

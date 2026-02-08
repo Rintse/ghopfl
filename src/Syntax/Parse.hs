@@ -24,7 +24,7 @@ data ParseException
 instance Exception ParseException
 
 -- Parses contents of given input file
-parse :: Bool -> String -> IO Prg
+parse :: Int -> String -> IO Prg
 parse v s = do
     putStrV v "Parsing program"
     let ts = myLLexer s

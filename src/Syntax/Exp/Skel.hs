@@ -66,6 +66,7 @@ transBConst x = case x of
 
 transExp :: Syntax.Exp.Abs.Exp -> Result
 transExp x = case x of
+  Syntax.Exp.Abs.Trace exp -> failure x
   Syntax.Exp.Abs.Single tsingle -> failure x
   Syntax.Exp.Abs.Var ident -> failure x
   Syntax.Exp.Abs.DVal double -> failure x
