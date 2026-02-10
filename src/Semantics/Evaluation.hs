@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 -- Defines a evaluation function for expressions
 -- which implements a call-by-value big-step semantics
@@ -56,92 +55,101 @@ evaluate v prog n s env = do
 -- Evaluation function:
 -- Takes an AST and calculates the result of the program using big step semantics
 eval :: Exp -> EvalMonad Value
+
+-- TODO: make trace useful
 eval (Trace e) = trace ("TRACE: " ++ show e) $ eval' e
+
 -- Variables
-eval exp@(Var (Ident v _ _)) =
-    asks (HM.lookup v . view evalEnv) >>= \case
-        Just v -> eval' v
-        Nothing -> throwError $ "Undefined free variable: " ++ show v
+eval exp@(Var (Ident v _ _)) = asks (HM.lookup v . view evalEnv) >>= go where
+    go (Just v) = eval' v
+    go Nothing = throwError $ "Undefined free variable: " ++ show v
+
 -- Later modality: do no allow calculation past "depth" nexts
-eval exp@(Next e) = do
-    asks (view evalDepth) >>= \x ->
-        if x == 0
-            then return $ VNext e
-            else local (over evalDepth $ subtract 1) (VNext . toExp <$> eval' e)
+eval exp@(Next e) = do asks (view evalDepth) >>= go where
+    go 0 = return $ VNext e
+    go _ = local (over evalDepth $ subtract 1) (VNext . toExp <$> eval' e)
+
 -- Put into fixpoint
 eval exp@(In e) = return $ VIn e
+
 -- Extract from fixpoint
-eval exp@(Out e) =
-    eval e >>= \case
-        VIn v -> eval' v
-        _ -> throwError $ " Out on non-In:\n" ++ treeTerm exp
+eval exp@(Out e) = eval e >>= go where
+    go(VIn v) = eval' v
+    go _ = throwError $ " Out on non-In:\n" ++ treeTerm exp
+
 -- Function application
-eval exp@(App e1 e2) =
-    match2 eval' e1 e2 >>= \case
-        (VThunk (Abstr x e), r2) -> eval' $ substitute e x $ toExp r2
-        _ -> throwError $ " Application on non-function:\n" ++ treeTerm exp
+eval exp@(App e1 e2) = match2 eval' e1 e2 >>= go where
+    go (VThunk (Abstr x e), r2) = eval' $ substitute e x $ toExp r2
+    go _ = throwError $ " Application on non-function:\n" ++ treeTerm exp
+
 -- Delayed function application
-eval exp@(DApp e1 e2) =
-    match2 eval' e1 e2 >>= \case
-        (VNext t, VNext s) -> eval' $ Next $ App t s
-        (x, y) -> throwError $ "Invalid arguments to DApp:\n" ++ treeTerm exp
+eval exp@(DApp e1 e2) = match2 eval' e1 e2 >>= go where
+    go (VNext t, VNext s) = eval' $ Next $ App t s
+    go (x, y) = throwError $ "Invalid arguments to DApp:\n" ++ treeTerm exp
+
 -- Pair creation
 eval exp@(Pair e1 e2) = return $ VPair e1 e2
+
 -- First projection
-eval exp@(Fst e) =
-    eval' e >>= \case
-        VPair v1 v2 -> eval' v1
-        err -> throwError $ "Took fst of non-pair:\n" ++ treeValue err
+eval exp@(Fst e) = eval' e >>= go where
+    go (VPair v1 v2) = eval' v1
+    go err = throwError $ "Took fst of non-pair:\n" ++ treeValue err
+
 -- Second projection
-eval exp@(Snd e) =
-    eval' e >>= \case
-        VPair v1 v2 -> eval' v2
-        err -> throwError $ "Took snd of non-pair:\n" ++ treeValue err
+eval exp@(Snd e) = eval' e >>= go where
+    go (VPair v1 v2) = eval' v2
+    go err = throwError $ "Took snd of non-pair:\n" ++ treeValue err
+
 -- Normal distribtion sampling
-eval exp@(Norm e) =
-    eval' e >>= \case
-        VPair e1 e2 ->
-            match2 eval' e1 e2 >>= \case
-                (VVal (Fract m), VVal (Fract v)) -> performDraw normalDist [m, v]
-                err -> throwError $ "Normal pair does not contain reals: " ++ show err
-        _ -> throwError $ "Normal argument not a pair of reals: \n" ++ treeTerm exp
+eval exp@(Norm e) = eval' e >>= go where
+    go (VPair e1 e2) = match2 eval' e1 e2 >>= go'
+    go _ = throwError $ "Normal argument not a pair of reals: \n" ++ treeTerm exp
+    go' (VVal (Fract m), VVal (Fract v)) = performDraw normalDist [m, v]
+    go' err = throwError $ "Normal pair does not contain reals: " ++ show err
+
 -- Random uniform distrubition sampling
 eval Rand = performDraw randDist []
+
 -- Evaluate into values
 eval exp@(Force e) = eval' e >>= forceEval eval
+
 -- If then else
-eval exp@(Ite b e1 e2) =
-    eval' b >>= \case
-        VBVal True -> eval' e1
-        VBVal False -> eval' e2
-        _ -> throwError $ "If with non boolean condition:\n" ++ treeTerm exp
+eval exp@(Ite b e1 e2) = eval' b >>= go where
+    go (VBVal True) = eval' e1
+    go (VBVal False) = eval' e2
+    go _ = throwError $ "If with non boolean condition:\n" ++ treeTerm exp
+
 -- Coproduct injection
 eval exp@(InL e) = return $ VInL e
 eval exp@(InR e) = return $ VInR e
+
 -- Matching coproducts
-eval exp@(Match e x e1 y e2) =
-    eval' e >>= \case
-        VInL l -> eval' l >>= eval' . substitute e1 x . toExp
-        VInR r -> eval' r >>= eval' . substitute e2 y . toExp
-        _ -> throwError $ "Match on non-coproduct:\n" ++ treeTerm exp
+eval exp@(Match e x e1 y e2) = eval' e >>= go where
+    go (VInL l) = eval' l >>= eval' . substitute e1 x . toExp
+    go (VInR r) = eval' r >>= eval' . substitute e2 y . toExp
+    go _ = throwError $ "Match on non-coproduct:\n" ++ treeTerm exp
+
 -- Function abstraction
 eval exp@(Abstr x e) = return $ VThunk exp
+
 -- Recursion
 eval exp@(Rec x e) = eval' $ substitute e x $ Next $ recName exp
+
 -- Prev: next inverse
 -- Empty substitution list, simply remove the next
-eval exp@(Prev (Env []) e) =
-    eval' e >>= \case
-        VNext e -> eval' e
-        _ -> throwError $ "Took prev of non-next:\n" ++ treeTerm exp
+eval exp@(Prev (Env []) e) = eval' e >>= go where
+    go (VNext e) = eval' e
+    go _ = throwError $ "Took prev of non-next:\n" ++ treeTerm exp
+
 -- Non empty list, perform substitutions
 eval exp@(Prev (Env l) e) = eval' $ Prev (Env []) $ substList e l
--- Boxing  and unboxing
+
+-- (Un)Boxing
 eval exp@(Box l e) = return $ VBox l e
-eval exp@(Unbox e) =
-    eval' e >>= \case
-        VBox (Env l) e1 -> eval' $ substList e1 l
-        _ -> throwError $ "Unbox on non-box:\n" ++ treeTerm exp
+eval exp@(Unbox e) = eval' e >>= go where
+    go (VBox (Env l) e1) = eval' $ substList e1 l
+    go _ = throwError $ "Unbox on non-box:\n" ++ treeTerm exp
+
 eval exp = case exp of
     -- Instant values
     Val v -> return $ VVal v
@@ -167,6 +175,8 @@ eval exp = case exp of
     -- Singleton term
     Single -> return VSingle
 
+-- Wrapper around eval that corecurses with it to be able to print all 
+-- evaluation steps
 eval' :: Exp -> EvalMonad Value
 eval' e = do
     v <- asks $ view evalVerbosity

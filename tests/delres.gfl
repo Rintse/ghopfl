@@ -1,0 +1,20 @@
+# Expected result: twice delayed result containing 8
+# stack run -- -i tests/delres.gfl -E -vv -n 2
+
+let
+    x1 <- dres_now 2 ;
+    f1 <- \x . x * x ;
+    r1 <- dres_map f1 x1 ;
+    # r1 is 2*2=4, undelayed
+
+    x2 <- dres_delay (dres_delay (dres_now 3)) ;
+    f2 <- \x . \y . if (x > y) then x else y ;  # max
+    r2 <- dres_func2_1 f2 4 x2 ;
+    # r2 is max(3, 4) = 4, twice delayed
+
+    x3 <- dres_delay (dres_now 3);
+    f3 <- \x . \y . x + y ;
+    r3 <- dres_func2 f3 r1 r2
+    # r3 is 4+4=8, twice delayed
+in:
+    force r3

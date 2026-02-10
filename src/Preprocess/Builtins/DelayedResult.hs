@@ -29,7 +29,7 @@ builtins =
       λ func . λ a . fix f . λ x .
           match ( out x ) {
               inL value → dres_now ( func a value ) ;
-              inR delay → dres_later ( f ⊙ next a ⊙ delay )
+              inR delay → dres_later ( f ⊙ delay )
           }
       """
     ),

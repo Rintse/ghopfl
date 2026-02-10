@@ -163,20 +163,20 @@ evalRelop f e1 op e2 =
         other -> throwError $ "Non-real args to relative operator:\n" ++ show other
 
 -- Evluates everything underneath certain values to make it readable
+-- TODO: shouldn't the semantics dictate this?
 forceEval :: (Exp -> EvalMonad Value) -> Value -> EvalMonad Value
 forceEval f = \case
     -- Still refuse to go underneath too many nexts
-    VNext e ->
-        asks view evalDepth >>= \x ->
-            if x == 0
-                then return $ VUNext e
-                else local (over evalDepth $ subtract 1) (VENext <$> (f e >>= forceEval f))
+    VNext e -> do
+        depth <- asks view evalDepth
+        if depth == 0
+            then return $ VUNext e
+            else local 
+                (over evalDepth $ subtract 1) 
+                (VENext <$> (f e >>= forceEval f))
     VIn e -> VEIn <$> (f e >>= forceEval f)
     VInL e -> VEInL <$> (f e >>= forceEval f)
     VInR e -> VEInR <$> (f e >>= forceEval f)
     VBox l e -> VEBox <$> (f e >>= forceEval f)
-    VPair e1 e2 ->
-        VEPair
-            <$> (f e1 >>= forceEval f)
-            <*> (f e2 >>= forceEval f)
+    VPair e1 e2 -> VEPair <$> (f e1 >>= forceEval f) <*> (f e2 >>= forceEval f)
     other -> return other

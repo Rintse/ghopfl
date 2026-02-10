@@ -5,19 +5,9 @@ let
 
     fold <- λ f . λ start . fix r . λ l . match ( out l ) { 
         inL unit → dres_now start ;
-        inR tup → dres_func2_1 f ( fst tup ) ( r ⊙ snd tup )
+        inR tup → dres_func2_1 f ( fst tup ) ( r ⊙ (snd tup) )
     } ;
 
-    # fix r . λ l . match ( out l ) { 
-    #     inL unit → dres_now 0 ;
-    #     inR tup → dres_func2_1 add ( fst tup ) ( r ⊙ snd tup )
-    # } 
-
-    # f <- dres_func2 add ;
-    # x <- dres_now 1 ;
-    # y <- dres_delay 2 ;
-    x1 <- dres_delay (dres_now 1);
-
-in: force (dres_map (\x . x + 1) x1)
-# in: f x y
-# in: force (fold add 0 l)
+    f <- \x . \y . x + y ;
+in: 
+    force (fold f 0 l)
