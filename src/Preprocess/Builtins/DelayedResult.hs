@@ -7,7 +7,7 @@ module Preprocess.Builtins.DelayedResult where
 builtins =
   [ -- Value is available now
     ("dres_now", " λ x . in ( inL ( x ) )"),
-    -- Delay value by one step
+    -- Manually delay value by one step
     ("dres_delay", " λ x . in ( inR ( next x ) )"),
     -- Never finishing computation
     ("dres_never", " fix f . in ( inR f )"),

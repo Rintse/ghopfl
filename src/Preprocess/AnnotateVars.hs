@@ -59,7 +59,10 @@ varAssign (Raw.Assign x _ t) = do
 
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
-getSub (Raw.Ident x) m = Ident x (head $ HM.findWithDefault [0] x m) 0
+getSub (Raw.Ident x) m = do 
+    case m HM.! x of
+        [] -> error "This should never happen"
+        (i:_) -> Ident x i 0
 
 -- Gets all free variables in an assignment list
 getFreesL :: [Assignment] -> Set.Set Ident

@@ -18,5 +18,8 @@ builtins =
         """
         λ x . x
         """
-    )
+    ),
+    ("null_b", "in ( inL 𝟙 )"),
+    -- TODO: this does not work
+    ("cons_b", "λ item . λ l . boxI ( in ( inR ( item, next ( unbox l ) ) ) )")
   ]

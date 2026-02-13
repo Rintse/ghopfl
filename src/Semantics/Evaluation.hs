@@ -57,12 +57,15 @@ evaluate v prog n s env = do
 eval :: Exp -> EvalMonad Value
 
 -- TODO: make trace useful
-eval (Trace e) = trace ("TRACE: " ++ show e) $ eval' e
+eval (Trace e) = do 
+    r <- eval' e
+    trace ("TRACE:\n" ++ show e ++ "\nV\n" ++ show r) $ return r
 
 -- Variables
-eval exp@(Var (Ident v _ _)) = asks (HM.lookup v . view evalEnv) >>= go where
-    go (Just v) = eval' v
-    go Nothing = throwError $ "Undefined free variable: " ++ show v
+eval exp@(Var (Ident v i r)) = asks (HM.lookup v . view evalEnv) >>= go where
+    go (Just e) = eval' e
+    go Nothing = throwError $ "Undefined free variable: " 
+        ++ show v ++ " [id=" ++ show i ++ "; depth=" ++ show r ++ "]"
 
 -- Later modality: do no allow calculation past "depth" nexts
 eval exp@(Next e) = do asks (view evalDepth) >>= go where
@@ -73,9 +76,10 @@ eval exp@(Next e) = do asks (view evalDepth) >>= go where
 eval exp@(In e) = return $ VIn e
 
 -- Extract from fixpoint
-eval exp@(Out e) = eval e >>= go where
+eval exp@(Out e) = eval' e >>= go where
     go(VIn v) = eval' v
-    go _ = throwError $ " Out on non-In:\n" ++ treeTerm exp
+    go other = throwError $ " Out on non-In:\n" 
+        ++ treeTerm exp ++ "\nOut value:\n" ++ show other
 
 -- Function application
 eval exp@(App e1 e2) = match2 eval' e1 e2 >>= go where
@@ -84,8 +88,11 @@ eval exp@(App e1 e2) = match2 eval' e1 e2 >>= go where
 
 -- Delayed function application
 eval exp@(DApp e1 e2) = match2 eval' e1 e2 >>= go where
-    go (VNext t, VNext s) = eval' $ Next $ App t s
+    go (VNext t, VNext s) = do
+        trace ("\nt: " ++ treeTerm t ++ "\ns: " ++ treeTerm s) $
+            eval' $ Next $ App t s
     go (x, y) = throwError $ "Invalid arguments to DApp:\n" ++ treeTerm exp
+        ++ "\nArguments:\n- " ++ show x ++ "\n- " ++ show y
 
 -- Pair creation
 eval exp@(Pair e1 e2) = return $ VPair e1 e2
@@ -111,7 +118,7 @@ eval exp@(Norm e) = eval' e >>= go where
 eval Rand = performDraw randDist []
 
 -- Evaluate into values
-eval exp@(Force e) = eval' e >>= forceEval eval
+eval exp@(Force e) = eval' e >>= forceEval eval'
 
 -- If then else
 eval exp@(Ite b e1 e2) = eval' b >>= go where
@@ -125,15 +132,17 @@ eval exp@(InR e) = return $ VInR e
 
 -- Matching coproducts
 eval exp@(Match e x e1 y e2) = eval' e >>= go where
-    go (VInL l) = eval' l >>= eval' . substitute e1 x . toExp
-    go (VInR r) = eval' r >>= eval' . substitute e2 y . toExp
+    go (VInL l) = eval' $ substitute e1 x l
+    go (VInR r) = eval' $ substitute e2 y r
+    -- go (VInL l) = eval' l >>= eval' . /substitute e1 x . toExp
+    -- go (VInR r) = eval' r >>= eval' . substitute e2 y . toExp
     go _ = throwError $ "Match on non-coproduct:\n" ++ treeTerm exp
 
 -- Function abstraction
 eval exp@(Abstr x e) = return $ VThunk exp
 
 -- Recursion
-eval exp@(Rec x e) = eval' $ substitute e x $ Next $ recName exp
+eval exp@(Rec x e) = eval' $ substitute e x (Next $ recName exp)
 
 -- Prev: next inverse
 -- Empty substitution list, simply remove the next
@@ -181,6 +190,7 @@ eval' :: Exp -> EvalMonad Value
 eval' e = do
     v <- asks $ view evalVerbosity
     if v >= 2 then
-        trace ("evalExp(\n" ++ treeTerm e ++ ")") $ eval e
+        -- trace ("evalExp(\n" ++ treeTerm e ++ ")") $ eval e
+        trace ("evalExp(\n" ++ show e ++ "\n)") $ eval e
     else
         eval e

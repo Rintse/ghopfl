@@ -1,13 +1,28 @@
 let 
     # l ← cons 5 ( cons 4 ( cons 3 ( cons 2 ( cons 1 null ) ) ) ) ;
-    l <- cons 1 null ;
+    # l <- cons 1 null ;
     # l <- null ;
+
+    # lb <- cons_b 4 ( cons_b 3 ( cons_b 2 ( cons_b 1 null_b ) ) ) ;
+    # lb <- cons_b 1 null_b ;
+
+    # check_next <- λ x . λ l . match ( out l ) {
+    #     inL unit → dres_now x ;
+    #     inR tup → false
+    # } ;
 
     fold <- λ f . λ start . fix r . λ l . match ( out l ) { 
         inL unit → dres_now start ;
-        inR tup → dres_func2_1 f ( fst tup ) ( r ⊙ (snd tup) )
+        inR tup → dres_func2_1 f ( fst tup ) ( dres_later ( r ⊙ snd tup ) )
+    } ;
+
+    l <- in ( inR ( 1 , next ( in ( inL {*} ) ) ) ) ;
+    length <- fix r . \ l . match ( out l ) {
+        inL unit -> dres_now 0 ;
+        inR tup -> ( r (*) snd tup )
     } ;
 
     f <- \x . \y . x + y ;
 in: 
-    force (fold f 0 l)
+    # force (fold f 0 l)
+    length l

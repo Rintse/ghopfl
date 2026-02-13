@@ -9,7 +9,7 @@ builtins =
     ("s_cons_g_n", "λ e . λ s . in ( e, s )"),
     ("s_head_g", "λ s . fst ( out s )"),
     ("s_tail_g", "λ s . snd ( out s )"),
-    ( "s_idx_g",
+    ("s_idx_g",
       """
       fix f . λ n . λ s .
           if ( n = 0 )
@@ -32,6 +32,7 @@ builtins =
       """
     ),
     -- Coinductive streams
+    ("s_cons_b", "λ e . λ s . boxI ( in ( e, ( next ( unbox s ) ) ) )"),
     ("s_head_b", "λ s1 . s_head_g ( unbox s1 )"),
     ("s_tail_b", "λ s2 . boxI ( prevI ( s_tail_g ( unbox s2 ) ) )"),
     -- Still introduces nexts

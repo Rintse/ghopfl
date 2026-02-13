@@ -2,10 +2,10 @@ module Semantics.Sampling where
 
 -- Probability density function of the gaussian distribution
 pdfNorm :: [Double] -> Double -> Double
-pdfNorm params c = do
-    let m = head params
+pdfNorm params@(m:_) c = do
     let sd = sqrt (params !! 1)
-    (1 / (sd * sqrt (2 * pi))) * exp (-0.5 * (((c - m) / sd) ^^ 2))
+    (1 / (sd * sqrt (2 * pi))) * exp (- (0.5 * (((c - m) / sd) ^^ 2)))
+pdfNorm [] c = error "Ran out of draws"
 
 pdfRand :: [Double] -> Double -> Double
 pdfRand params c = if 0.0 <= c && c <= 1.0 then 1 else 0

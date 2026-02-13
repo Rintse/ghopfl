@@ -1,0 +1,15 @@
+# Tests coproduct injection/extraction
+# Expected result: (true, false)
+# stack run -- -i tests/terms/match.gfl -E
+
+let
+    # Inverts bools, checks even-ness for ints
+    m <- \ x . match x {
+        inL bool -> ! bool ;
+        inR num -> (num % 2) = 0
+    } ;
+
+    l <- inL false ;
+    r <- inR 3 ;
+in:
+    force (m l, m r)
