@@ -151,15 +151,12 @@ instance Print Syntax.Types.Abs.TRarrow where
   prt _ (Syntax.Types.Abs.TRarrow i) = doc $ showString i
 instance Print Syntax.Types.Abs.TSingle where
   prt _ (Syntax.Types.Abs.TSingle i) = doc $ showString i
-instance Print Syntax.Types.Abs.Base where
-  prt i = \case
-    Syntax.Types.Abs.Bool -> prPrec i 0 (concatD [doc (showString "bool")])
-    Syntax.Types.Abs.Real -> prPrec i 0 (concatD [doc (showString "real")])
-    Syntax.Types.Abs.Var id_ -> prPrec i 0 (concatD [prt 0 id_])
-
 instance Print Syntax.Types.Abs.Ty where
   prt i = \case
-    Syntax.Types.Abs.Leaf base -> prPrec i 10 (concatD [prt 0 base])
+    Syntax.Types.Abs.Single tsingle -> prPrec i 10 (concatD [prt 0 tsingle])
+    Syntax.Types.Abs.Bool -> prPrec i 10 (concatD [doc (showString "bool")])
+    Syntax.Types.Abs.Real -> prPrec i 10 (concatD [doc (showString "real")])
+    Syntax.Types.Abs.Var id_ -> prPrec i 10 (concatD [prt 0 id_])
     Syntax.Types.Abs.Prod ty1 ty2 -> prPrec i 9 (concatD [prt 9 ty1, doc (showString "x"), prt 10 ty2])
     Syntax.Types.Abs.Coprod ty1 ty2 -> prPrec i 8 (concatD [prt 8 ty1, doc (showString "+"), prt 9 ty2])
     Syntax.Types.Abs.Func ty1 trarrow ty2 -> prPrec i 7 (concatD [prt 7 ty1, prt 0 trarrow, prt 8 ty2])

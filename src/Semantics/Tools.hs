@@ -127,6 +127,16 @@ evalAExp1 f op e =
         (VVal v) -> return $ VVal $ op v
         other -> throwError $ "Non-real arg to arithmetic operator:\n" ++ show other
 
+toBool :: Value -> EvalMonad Bool
+toBool VTrue = return True
+toBool VFalse = return False
+toBool other = throwError $ 
+    "Non bool argument to boolean operator: " ++ show other
+
+fromBool :: Bool -> Value
+fromBool True = VTrue
+fromBool False = VFalse
+
 -- Evaluates a binary boolean operation
 evalBExp ::
     (Exp -> EvalMonad Value) ->
@@ -134,10 +144,10 @@ evalBExp ::
     (Bool -> Bool -> Bool) ->
     Exp ->
     EvalMonad Value
-evalBExp f e1 op e2 =
-    match2 f e1 e2 >>= \case
-        (VBVal b1, VBVal b2) -> return $ VBVal $ op b1 b2
-        other -> throwError $ "Non-bool args to bool operator:\n" ++ show other
+evalBExp f e1 op e2 = do 
+    r1 <- f e1 >>= toBool
+    r2 <- f e2 >>= toBool
+    return $ fromBool $ op r1 r2
 
 -- Evaluates a unary boolean operation
 evalBExp1 ::
@@ -145,10 +155,9 @@ evalBExp1 ::
     (Bool -> Bool) ->
     Exp ->
     EvalMonad Value
-evalBExp1 f op e =
-    f e >>= \case
-        VBVal b -> return $ VBVal $ op b
-        other -> throwError $ "Non-bool args to bool operator:\n" ++ show other
+evalBExp1 f op e = do
+    r1 <- f e >>= toBool
+    return $ fromBool $ op r1
 
 -- Evaluates a relative operator
 evalRelop ::
@@ -159,7 +168,7 @@ evalRelop ::
     EvalMonad Value
 evalRelop f e1 op e2 =
     match2 f e1 e2 >>= \case
-        (VVal v1, VVal v2) -> return $ VBVal $ op v1 v2
+        (VVal v1, VVal v2) -> return $ fromBool $ op v1 v2
         other -> throwError $ "Non-real args to relative operator:\n" ++ show other
 
 -- Evluates everything underneath certain values to make it readable

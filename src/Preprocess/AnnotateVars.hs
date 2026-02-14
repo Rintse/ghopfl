@@ -4,7 +4,6 @@
 -- are annotated with a unique id to aid in substitution. Also defines a
 -- function that transforms raw expressions into their annotated versions
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Preprocess.AnnotateVars where
@@ -24,6 +23,7 @@ import qualified Data.HashMap.Lazy as HM
 import Data.List.Index
 import qualified Data.Set as Set
 import Debug.Trace
+import Preprocess.Definitions (runDef)
 
 -- State environment contains a counter and a hashmap in which the values
 -- track all the names that we are currently substituting the key for.
@@ -59,7 +59,7 @@ varAssign (Raw.Assign x _ t) = do
 
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
-getSub (Raw.Ident x) m = do 
+getSub (Raw.Ident x) m = do
     case m HM.! x of
         [] -> error "This should never happen"
         (i:_) -> Ident x i 0
@@ -70,13 +70,12 @@ getFreesL = foldr (Set.union . (\(Assign x t) -> getFrees t)) Set.empty
 
 -- Gets all free variables in an expression
 getFrees :: Exp -> Set.Set Ident
-getFrees = cata $ \case
-    (VarF id@(Ident x d _)) -> if d == 0 then Set.singleton id else Set.empty
-    (ValF _) -> Set.empty
-    (BValF _) -> Set.empty
-    (PrevF (Env l) e) -> Set.union e $ getFreesL l
-    (BoxF (Env l) e) -> Set.union e $ getFreesL l
-    fFree -> foldr Set.union Set.empty fFree
+getFrees = cata go where
+    go (VarF id@(Ident x d _)) = if d == 0 then Set.singleton id else Set.empty
+    go (ValF _) = Set.empty
+    go (PrevF (Env l) e) = Set.union e $ getFreesL l
+    go (BoxF (Env l) e) = Set.union e $ getFreesL l
+    go fFree = foldr Set.union Set.empty fFree
 
 -- Transforms an identifier into an identity substitution for that identifier
 idSubst :: Ident -> Raw.Assignment
@@ -96,6 +95,12 @@ freeList e = Raw.Env $ Prelude.map idSubst $ Set.toList $ getFrees (annotateVars
 -- idenfiers are made unique with an id and recursion depth tag.
 transform :: Raw.Exp -> IdMonad Exp
 transform exp = case exp of
+    Raw.LetIn (Raw.Env a) e -> do
+        e' <- transform e
+        let assignTransform (Raw.Assign (Raw.Ident x) _ y) = Assign (Ident x 0 0) <$> transform y
+        subs <- mapM assignTransform a
+        return $ foldl runDef e' subs
+
     -- Annotate variables with a unique ID
     Raw.Var v -> asks (Var . getSub v)
     -- Integers and doubles into one overarching number type
@@ -103,8 +108,8 @@ transform exp = case exp of
     Raw.IVal v -> return $ Val $ Whole v
     -- Simple 1-to-1 correspondence.
     Raw.Single t -> return Single
-    Raw.Trace e -> fmap Trace (transform e)
-    Raw.BVal v -> return $ BVal v
+    Raw.BTrue -> return BTrue
+    Raw.BFalse -> return BFalse
     Raw.Unbox e -> fmap Unbox (transform e)
     Raw.Force e -> fmap Force (transform e)
     Raw.Norm e -> fmap Norm (transform e)

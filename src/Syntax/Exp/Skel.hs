@@ -59,20 +59,15 @@ transTSingle :: Syntax.Exp.Abs.TSingle -> Result
 transTSingle x = case x of
   Syntax.Exp.Abs.TSingle string -> failure x
 
-transBConst :: Syntax.Exp.Abs.BConst -> Result
-transBConst x = case x of
-  Syntax.Exp.Abs.BTrue -> failure x
-  Syntax.Exp.Abs.BFalse -> failure x
-
 transExp :: Syntax.Exp.Abs.Exp -> Result
 transExp x = case x of
-  Syntax.Exp.Abs.Trace exp -> failure x
+  Syntax.Exp.Abs.BTrue -> failure x
   Syntax.Exp.Abs.Single tsingle -> failure x
   Syntax.Exp.Abs.Var ident -> failure x
   Syntax.Exp.Abs.DVal double -> failure x
   Syntax.Exp.Abs.IVal integer -> failure x
-  Syntax.Exp.Abs.BVal bconst -> failure x
-  Syntax.Exp.Abs.EList lst -> failure x
+  Syntax.Exp.Abs.BFalse -> failure x
+  Syntax.Exp.Abs.Rand -> failure x
   Syntax.Exp.Abs.Pair exp1 exp2 -> failure x
   Syntax.Exp.Abs.Next exp -> failure x
   Syntax.Exp.Abs.Prev environment exp -> failure x
@@ -82,8 +77,6 @@ transExp x = case x of
   Syntax.Exp.Abs.BoxI exp -> failure x
   Syntax.Exp.Abs.Unbox exp -> failure x
   Syntax.Exp.Abs.Force exp -> failure x
-  Syntax.Exp.Abs.Rand -> failure x
-  Syntax.Exp.Abs.ListIndex exp1 exp2 -> failure x
   Syntax.Exp.Abs.In exp -> failure x
   Syntax.Exp.Abs.Out exp -> failure x
   Syntax.Exp.Abs.Fst exp -> failure x
@@ -92,8 +85,6 @@ transExp x = case x of
   Syntax.Exp.Abs.InR exp -> failure x
   Syntax.Exp.Abs.App exp1 exp2 -> failure x
   Syntax.Exp.Abs.LApp exp1 tlapp exp2 -> failure x
-  Syntax.Exp.Abs.ListCons exp1 exp2 -> failure x
-  Syntax.Exp.Abs.ListAppend exp1 exp2 -> failure x
   Syntax.Exp.Abs.Min exp -> failure x
   Syntax.Exp.Abs.Pow exp1 exp2 -> failure x
   Syntax.Exp.Abs.Mul exp1 exp2 -> failure x
@@ -112,17 +103,9 @@ transExp x = case x of
   Syntax.Exp.Abs.Norm exp -> failure x
   Syntax.Exp.Abs.Ite exp1 exp2 exp3 -> failure x
   Syntax.Exp.Abs.Match exp1 ident1 tmatch1 exp2 ident2 tmatch2 exp3 -> failure x
-  Syntax.Exp.Abs.Abstr lam ident exp -> failure x
   Syntax.Exp.Abs.Rec ident exp -> failure x
-
-transLst :: Syntax.Exp.Abs.Lst -> Result
-transLst x = case x of
-  Syntax.Exp.Abs.List exps -> failure x
-
-transPrg :: Syntax.Exp.Abs.Prg -> Result
-transPrg x = case x of
-  Syntax.Exp.Abs.DefProg environment exp -> failure x
-  Syntax.Exp.Abs.Prog exp -> failure x
+  Syntax.Exp.Abs.LetIn environment exp -> failure x
+  Syntax.Exp.Abs.Abstr lam ident exp -> failure x
 
 transEnvironment :: Syntax.Exp.Abs.Environment -> Result
 transEnvironment x = case x of

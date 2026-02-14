@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \( | \, | \) | \{ | \} | \. | \| | \: | \+ \+ | \- | \^ | \* | \/ | \% | \+ | \= | \< | \> | \; | \[ | \] | "in" \:
+@rsyms = \( | \, | \) | \{ | \} | \. | \- | \^ | \* | \/ | \% | \+ | \= | \< | \> | \; | "in" \:
 
 :-
 
@@ -215,28 +215,23 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "force" 24
-    (b ";" 12
-       (b "++" 6
+  b "fst" 21
+    (b "<" 11
+       (b "," 6
           (b ")" 3 (b "(" 2 (b "%" 1 N N) N) (b "+" 5 (b "*" 4 N N) N))
-          (b "." 9 (b "-" 8 (b "," 7 N N) N) (b ":" 11 (b "/" 10 N N) N)))
-       (b "^" 18
-          (b ">" 15 (b "=" 14 (b "<" 13 N N) N) (b "]" 17 (b "[" 16 N N) N))
-          (b "else" 21
-             (b "boxI" 20 (b "box" 19 N N) N)
-             (b "fix" 23 (b "false" 22 N N) N))))
-    (b "prev" 36
-       (b "inR" 30
-          (b "in" 27
-             (b "if" 26 (b "fst" 25 N N) N) (b "inL" 29 (b "in:" 28 N N) N))
-          (b "next" 33
-             (b "match" 32 (b "let" 31 N N) N)
-             (b "out" 35 (b "normal" 34 N N) N)))
-       (b "true" 42
-          (b "snd" 39
-             (b "rand" 38 (b "prevI" 37 N N) N)
-             (b "trace" 41 (b "then" 40 N N) N))
-          (b "|" 45 (b "{" 44 (b "unbox" 43 N N) N) (b "}" 46 N N))))
+          (b "/" 9 (b "." 8 (b "-" 7 N N) N) (b ";" 10 N N)))
+       (b "boxI" 16
+          (b "^" 14 (b ">" 13 (b "=" 12 N N) N) (b "box" 15 N N))
+          (b "fix" 19
+             (b "false" 18 (b "else" 17 N N) N) (b "force" 20 N N))))
+    (b "out" 31
+       (b "inR" 26
+          (b "in:" 24 (b "in" 23 (b "if" 22 N N) N) (b "inL" 25 N N))
+          (b "next" 29
+             (b "match" 28 (b "let" 27 N N) N) (b "normal" 30 N N)))
+       (b "then" 36
+          (b "rand" 34 (b "prevI" 33 (b "prev" 32 N N) N) (b "snd" 35 N N))
+          (b "{" 39 (b "unbox" 38 (b "true" 37 N N) N) (b "}" 40 N N))))
   where
   b s n = B bs (TS bs n)
     where

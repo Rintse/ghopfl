@@ -30,7 +30,8 @@ instance Treeish Exp where
         Trace e -> toTree e
         Var x -> toTree x
         Val v -> Node (show v) []
-        BVal b -> Node (show b) []
+        BFalse -> Node "False" []
+        BTrue -> Node "True" []
         Next e -> Node "Next" [toTree e]
         Unbox e -> Node "Unbox" [toTree e]
         Box l e -> Node "Box" [toTree l, toTree e]
@@ -79,7 +80,8 @@ instance Treeish Value where
     toTree val = case val of
         VSingle -> Node "" []
         VVal v -> Node (show v) []
-        VBVal b -> Node (show b) []
+        VTrue -> Node "True" []
+        VFalse -> Node "False" []
         VPair t1 t2 -> Node "VPair" [toTree t1, toTree t2]
         VList l -> Node "VList" (map toTree l)
         VIn t -> Node "In" [toTree t]

@@ -11,12 +11,12 @@ token       TMu      ('μ' | '|''u') ;
 token       TRarrow  ('→' | '-''>') ;
 token       TSingle  ( '𝟙' | '{''*''}' ) ;
 
-Bool.       Base    ::= "bool" ;
-Real.       Base    ::= "real" ;
-Var.        Base    ::= Ident ;
+Single.     Ty10    ::= TSingle ;
+Bool.       Ty10    ::= "bool" ;
+Real.       Ty10    ::= "real" ;
+Var.        Ty10    ::= Ident ;
 
 -- TODO: naming?
-Leaf.       Ty10    ::= Base ; 
 Prod.       Ty9     ::= Ty9 "x" Ty10 ; 
 Coprod.     Ty8     ::= Ty8 "+" Ty9 ; 
 Func.       Ty7     ::= Ty7 TRarrow Ty8 ; 

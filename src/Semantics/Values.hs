@@ -18,7 +18,8 @@ import Data.Functor.Foldable.TH
 data Value
     = VSingle
     | VVal Number
-    | VBVal Bool
+    | VFalse
+    | VTrue
     | VPair Exp Exp
     | VList [Exp]
     | VIn Exp
@@ -41,16 +42,10 @@ data Value
 
 makeBaseFunctor ''Value
 
-fromBool :: Bool -> Raw.BConst
-fromBool b = if b then Raw.BTrue else Raw.BFalse
-toBool :: Raw.BConst -> Bool
-toBool = \case
-    Raw.BTrue -> True
-    Raw.BFalse -> False
-
 toExp :: Value -> Exp
 toExp (VVal v) = Val v
-toExp (VBVal v) = BVal (fromBool v)
+toExp VTrue = BTrue
+toExp VFalse = BFalse
 toExp (VIn e) = In e
 toExp (VInL e) = InL e
 toExp (VInR e) = InR e

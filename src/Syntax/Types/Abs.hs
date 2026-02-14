@@ -10,11 +10,11 @@ import Prelude (String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
-data Base = Bool | Real | Var Ident
-  deriving (C.Eq, C.Ord, C.Show, C.Read)
-
 data Ty
-    = Leaf Base
+    = Single TSingle
+    | Bool
+    | Real
+    | Var Ident
     | Prod Ty Ty
     | Coprod Ty Ty
     | Func Ty TRarrow Ty

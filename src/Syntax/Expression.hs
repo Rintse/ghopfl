@@ -18,7 +18,8 @@ data Exp
     | -- Base types
       Var Ident
     | Val Number
-    | BVal Raw.BConst
+    | BFalse
+    | BTrue
     | -- Lambda calculus with ite
       App Exp Exp
     | Abstr Ident Exp

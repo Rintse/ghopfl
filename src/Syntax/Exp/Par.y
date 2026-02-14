@@ -8,9 +8,8 @@
 module Syntax.Exp.Par
   ( happyError
   , myLexer
-  , pEnvironment
   , pExp
-  , pPrg
+  , pEnvironment
   ) where
 
 import Prelude
@@ -20,9 +19,8 @@ import Syntax.Exp.Lex
 
 }
 
-%name pEnvironment Environment
 %name pExp Exp
-%name pPrg Prg
+%name pEnvironment Environment
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
@@ -32,47 +30,41 @@ import Syntax.Exp.Lex
   ')'       { PT _ (TS _ 3)       }
   '*'       { PT _ (TS _ 4)       }
   '+'       { PT _ (TS _ 5)       }
-  '++'      { PT _ (TS _ 6)       }
-  ','       { PT _ (TS _ 7)       }
-  '-'       { PT _ (TS _ 8)       }
-  '.'       { PT _ (TS _ 9)       }
-  '/'       { PT _ (TS _ 10)      }
-  ':'       { PT _ (TS _ 11)      }
-  ';'       { PT _ (TS _ 12)      }
-  '<'       { PT _ (TS _ 13)      }
-  '='       { PT _ (TS _ 14)      }
-  '>'       { PT _ (TS _ 15)      }
-  '['       { PT _ (TS _ 16)      }
-  ']'       { PT _ (TS _ 17)      }
-  '^'       { PT _ (TS _ 18)      }
-  'box'     { PT _ (TS _ 19)      }
-  'boxI'    { PT _ (TS _ 20)      }
-  'else'    { PT _ (TS _ 21)      }
-  'false'   { PT _ (TS _ 22)      }
-  'fix'     { PT _ (TS _ 23)      }
-  'force'   { PT _ (TS _ 24)      }
-  'fst'     { PT _ (TS _ 25)      }
-  'if'      { PT _ (TS _ 26)      }
-  'in'      { PT _ (TS _ 27)      }
-  'in:'     { PT _ (TS _ 28)      }
-  'inL'     { PT _ (TS _ 29)      }
-  'inR'     { PT _ (TS _ 30)      }
-  'let'     { PT _ (TS _ 31)      }
-  'match'   { PT _ (TS _ 32)      }
-  'next'    { PT _ (TS _ 33)      }
-  'normal'  { PT _ (TS _ 34)      }
-  'out'     { PT _ (TS _ 35)      }
-  'prev'    { PT _ (TS _ 36)      }
-  'prevI'   { PT _ (TS _ 37)      }
-  'rand'    { PT _ (TS _ 38)      }
-  'snd'     { PT _ (TS _ 39)      }
-  'then'    { PT _ (TS _ 40)      }
-  'trace'   { PT _ (TS _ 41)      }
-  'true'    { PT _ (TS _ 42)      }
-  'unbox'   { PT _ (TS _ 43)      }
-  '{'       { PT _ (TS _ 44)      }
-  '|'       { PT _ (TS _ 45)      }
-  '}'       { PT _ (TS _ 46)      }
+  ','       { PT _ (TS _ 6)       }
+  '-'       { PT _ (TS _ 7)       }
+  '.'       { PT _ (TS _ 8)       }
+  '/'       { PT _ (TS _ 9)       }
+  ';'       { PT _ (TS _ 10)      }
+  '<'       { PT _ (TS _ 11)      }
+  '='       { PT _ (TS _ 12)      }
+  '>'       { PT _ (TS _ 13)      }
+  '^'       { PT _ (TS _ 14)      }
+  'box'     { PT _ (TS _ 15)      }
+  'boxI'    { PT _ (TS _ 16)      }
+  'else'    { PT _ (TS _ 17)      }
+  'false'   { PT _ (TS _ 18)      }
+  'fix'     { PT _ (TS _ 19)      }
+  'force'   { PT _ (TS _ 20)      }
+  'fst'     { PT _ (TS _ 21)      }
+  'if'      { PT _ (TS _ 22)      }
+  'in'      { PT _ (TS _ 23)      }
+  'in:'     { PT _ (TS _ 24)      }
+  'inL'     { PT _ (TS _ 25)      }
+  'inR'     { PT _ (TS _ 26)      }
+  'let'     { PT _ (TS _ 27)      }
+  'match'   { PT _ (TS _ 28)      }
+  'next'    { PT _ (TS _ 29)      }
+  'normal'  { PT _ (TS _ 30)      }
+  'out'     { PT _ (TS _ 31)      }
+  'prev'    { PT _ (TS _ 32)      }
+  'prevI'   { PT _ (TS _ 33)      }
+  'rand'    { PT _ (TS _ 34)      }
+  'snd'     { PT _ (TS _ 35)      }
+  'then'    { PT _ (TS _ 36)      }
+  'true'    { PT _ (TS _ 37)      }
+  'unbox'   { PT _ (TS _ 38)      }
+  '{'       { PT _ (TS _ 39)      }
+  '}'       { PT _ (TS _ 40)      }
   L_Ident   { PT _ (TV $$)        }
   L_doubl   { PT _ (TD $$)        }
   L_integ   { PT _ (TI $$)        }
@@ -128,60 +120,51 @@ TMatch  : L_TMatch { Syntax.Exp.Abs.TMatch $1 }
 TSingle :: { Syntax.Exp.Abs.TSingle }
 TSingle  : L_TSingle { Syntax.Exp.Abs.TSingle $1 }
 
-BConst :: { Syntax.Exp.Abs.BConst }
-BConst
+Exp14 :: { Syntax.Exp.Abs.Exp }
+Exp14
   : 'true' { Syntax.Exp.Abs.BTrue }
-  | 'false' { Syntax.Exp.Abs.BFalse }
-
-Exp13 :: { Syntax.Exp.Abs.Exp }
-Exp13
-  : 'trace' Exp13 { Syntax.Exp.Abs.Trace $2 }
   | TSingle { Syntax.Exp.Abs.Single $1 }
   | Ident { Syntax.Exp.Abs.Var $1 }
   | Double { Syntax.Exp.Abs.DVal $1 }
   | Integer { Syntax.Exp.Abs.IVal $1 }
-  | BConst { Syntax.Exp.Abs.BVal $1 }
-  | Lst { Syntax.Exp.Abs.EList $1 }
-  | '(' Exp ',' Exp1 ')' { Syntax.Exp.Abs.Pair $2 $4 }
+  | 'false' { Syntax.Exp.Abs.BFalse }
+  | 'rand' { Syntax.Exp.Abs.Rand }
   | '(' Exp ')' { $2 }
+
+Exp13 :: { Syntax.Exp.Abs.Exp }
+Exp13
+  : '(' Exp13 ',' Exp14 ')' { Syntax.Exp.Abs.Pair $2 $4 }
+  | 'next' Exp14 { Syntax.Exp.Abs.Next $2 }
+  | 'prev' '{' Environment '}' '.' Exp13 { Syntax.Exp.Abs.Prev $3 $6 }
+  | 'prev' Exp14 { Syntax.Exp.Abs.PrevE $2 }
+  | 'prevI' Exp14 { Syntax.Exp.Abs.PrevI $2 }
+  | 'box' '{' Environment '}' '.' Exp13 { Syntax.Exp.Abs.Box $3 $6 }
+  | 'boxI' Exp14 { Syntax.Exp.Abs.BoxI $2 }
+  | 'unbox' Exp14 { Syntax.Exp.Abs.Unbox $2 }
+  | 'force' Exp14 { Syntax.Exp.Abs.Force $2 }
+  | Exp14 { $1 }
 
 Exp12 :: { Syntax.Exp.Abs.Exp }
 Exp12
-  : 'next' Exp13 { Syntax.Exp.Abs.Next $2 }
-  | 'prev' '{' Environment '}' '.' Exp13 { Syntax.Exp.Abs.Prev $3 $6 }
-  | 'prev' Exp13 { Syntax.Exp.Abs.PrevE $2 }
-  | 'prevI' Exp13 { Syntax.Exp.Abs.PrevI $2 }
-  | 'box' '{' Environment '}' '.' Exp12 { Syntax.Exp.Abs.Box $3 $6 }
-  | 'boxI' Exp13 { Syntax.Exp.Abs.BoxI $2 }
-  | 'unbox' Exp13 { Syntax.Exp.Abs.Unbox $2 }
-  | 'force' Exp12 { Syntax.Exp.Abs.Force $2 }
-  | 'rand' { Syntax.Exp.Abs.Rand }
+  : 'in' Exp13 { Syntax.Exp.Abs.In $2 }
+  | 'out' Exp13 { Syntax.Exp.Abs.Out $2 }
+  | 'fst' Exp13 { Syntax.Exp.Abs.Fst $2 }
+  | 'snd' Exp13 { Syntax.Exp.Abs.Snd $2 }
+  | 'inL' Exp13 { Syntax.Exp.Abs.InL $2 }
+  | 'inR' Exp13 { Syntax.Exp.Abs.InR $2 }
   | Exp13 { $1 }
 
 Exp11 :: { Syntax.Exp.Abs.Exp }
 Exp11
-  : Exp11 '|' Exp12 '|' { Syntax.Exp.Abs.ListIndex $1 $3 }
-  | 'in' Exp12 { Syntax.Exp.Abs.In $2 }
-  | 'out' Exp12 { Syntax.Exp.Abs.Out $2 }
-  | 'fst' Exp12 { Syntax.Exp.Abs.Fst $2 }
-  | 'snd' Exp12 { Syntax.Exp.Abs.Snd $2 }
-  | 'inL' Exp12 { Syntax.Exp.Abs.InL $2 }
-  | 'inR' Exp12 { Syntax.Exp.Abs.InR $2 }
+  : Exp11 Exp12 { Syntax.Exp.Abs.App $1 $2 }
+  | Exp11 TLApp Exp12 { Syntax.Exp.Abs.LApp $1 $2 $3 }
   | Exp12 { $1 }
 
 Exp10 :: { Syntax.Exp.Abs.Exp }
-Exp10
-  : Exp10 Exp11 { Syntax.Exp.Abs.App $1 $2 }
-  | Exp10 TLApp Exp11 { Syntax.Exp.Abs.LApp $1 $2 $3 }
-  | Exp10 ':' Exp11 { Syntax.Exp.Abs.ListCons $1 $3 }
-  | Exp10 '++' Exp11 { Syntax.Exp.Abs.ListAppend $1 $3 }
-  | Exp11 { $1 }
+Exp10 : '-' Exp11 { Syntax.Exp.Abs.Min $2 } | Exp11 { $1 }
 
 Exp9 :: { Syntax.Exp.Abs.Exp }
-Exp9
-  : '-' Exp10 { Syntax.Exp.Abs.Min $2 }
-  | Exp9 '^' Exp10 { Syntax.Exp.Abs.Pow $1 $3 }
-  | Exp10 { $1 }
+Exp9 : Exp9 '^' Exp10 { Syntax.Exp.Abs.Pow $1 $3 } | Exp10 { $1 }
 
 Exp8 :: { Syntax.Exp.Abs.Exp }
 Exp8
@@ -215,37 +198,30 @@ Exp4
   | Exp5 { $1 }
 
 Exp3 :: { Syntax.Exp.Abs.Exp }
-Exp3 : 'normal' Exp3 { Syntax.Exp.Abs.Norm $2 } | Exp4 { $1 }
+Exp3 : 'normal' Exp4 { Syntax.Exp.Abs.Norm $2 } | Exp4 { $1 }
 
 Exp2 :: { Syntax.Exp.Abs.Exp }
 Exp2
-  : 'if' Exp13 'then' Exp3 'else' Exp3 { Syntax.Exp.Abs.Ite $2 $4 $6 }
+  : 'if' Exp2 'then' Exp3 'else' Exp3 { Syntax.Exp.Abs.Ite $2 $4 $6 }
   | Exp3 { $1 }
 
 Exp1 :: { Syntax.Exp.Abs.Exp }
 Exp1
-  : 'match' Exp13 '{' 'inL' Ident TMatch Exp2 ';' 'inR' Ident TMatch Exp2 '}' { Syntax.Exp.Abs.Match $2 $5 $6 $7 $10 $11 $12 }
+  : 'match' Exp1 '{' 'inL' Ident TMatch Exp2 ';' 'inR' Ident TMatch Exp2 '}' { Syntax.Exp.Abs.Match $2 $5 $6 $7 $10 $11 $12 }
   | Exp2 { $1 }
 
 Exp :: { Syntax.Exp.Abs.Exp }
 Exp
-  : Lam Ident '.' Exp { Syntax.Exp.Abs.Abstr $1 $2 $4 }
-  | 'fix' Ident '.' Exp { Syntax.Exp.Abs.Rec $2 $4 }
+  : 'fix' Ident '.' Exp1 { Syntax.Exp.Abs.Rec $2 $4 }
+  | 'let' Environment 'in:' Exp1 { Syntax.Exp.Abs.LetIn $2 $4 }
+  | Lam Ident '.' Exp { Syntax.Exp.Abs.Abstr $1 $2 $4 }
   | Exp1 { $1 }
-
-Lst :: { Syntax.Exp.Abs.Lst }
-Lst : '[' ListExp ']' { Syntax.Exp.Abs.List $2 }
 
 ListExp :: { [Syntax.Exp.Abs.Exp] }
 ListExp
   : {- empty -} { [] }
   | Exp { (:[]) $1 }
   | Exp ',' ListExp { (:) $1 $3 }
-
-Prg :: { Syntax.Exp.Abs.Prg }
-Prg
-  : 'let' Environment 'in:' Exp { Syntax.Exp.Abs.DefProg $2 $4 }
-  | Exp { Syntax.Exp.Abs.Prog $1 }
 
 Environment :: { Syntax.Exp.Abs.Environment }
 Environment : ListAssignment { Syntax.Exp.Abs.Env $1 }

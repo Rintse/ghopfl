@@ -61,14 +61,13 @@ TRarrow  : L_TRarrow { Syntax.Types.Abs.TRarrow $1 }
 TSingle :: { Syntax.Types.Abs.TSingle }
 TSingle  : L_TSingle { Syntax.Types.Abs.TSingle $1 }
 
-Base :: { Syntax.Types.Abs.Base }
-Base
-  : 'bool' { Syntax.Types.Abs.Bool }
+Ty10 :: { Syntax.Types.Abs.Ty }
+Ty10
+  : TSingle { Syntax.Types.Abs.Single $1 }
+  | 'bool' { Syntax.Types.Abs.Bool }
   | 'real' { Syntax.Types.Abs.Real }
   | Ident { Syntax.Types.Abs.Var $1 }
-
-Ty10 :: { Syntax.Types.Abs.Ty }
-Ty10 : Base { Syntax.Types.Abs.Leaf $1 } | '(' Ty ')' { $2 }
+  | '(' Ty ')' { $2 }
 
 Ty9 :: { Syntax.Types.Abs.Ty }
 Ty9 : Ty9 'x' Ty10 { Syntax.Types.Abs.Prod $1 $3 } | Ty10 { $1 }

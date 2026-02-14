@@ -24,11 +24,11 @@ data ParseException
 instance Exception ParseException
 
 -- Parses contents of given input file
-parse :: Int -> String -> IO Prg
+parse :: Int -> String -> IO Exp
 parse v s = do
-    putStrV v "Parsing program"
+    putStrV v "Parsing program..."
     let ts = myLLexer s
-    case pPrg ts of
+    case pExp ts of
         Bad r -> do
             putStrLn $ "Parse failed: " ++ r
             putStrV v $ "Tokens still in stream:\n" ++ show ts

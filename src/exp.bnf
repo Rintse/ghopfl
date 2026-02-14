@@ -1,7 +1,8 @@
 -- Syntax of GHOPFL defined in LBNF format
 -- To be processed into a parser and lexer using BNFC
 
-entrypoints Environment, Exp, Prg;
+-- Environment is entrypoint to enable parsing of environments from the command line
+entrypoints Exp, Environment;
 comment     "#" ;
 
 -- Tokens
@@ -17,99 +18,65 @@ token       TMatch  ('→' | '-''>') ;
 -- Singleton token
 token       TSingle ( '𝟙' | '{''*''}' ) ;
 
--- Boolean expressions
-BTrue.      BConst  ::= "true" ;
-BFalse.     BConst  ::= "false" ;
-
-Trace.      Exp13   ::= "trace" Exp13 ;
-
 -- Terms
-Single.     Exp13   ::= TSingle ;
-Var.        Exp13   ::= Ident ;
-DVal.       Exp13   ::= Double ;
-IVal.       Exp13   ::= Integer ;
-BVal.       Exp13   ::= BConst ;
-
--- Single objects (super high precedence)
-EList.      Exp13    ::= Lst ;
-Pair.       Exp13    ::= "(" Exp "," Exp1 ")" ;
-
+BTrue.      Exp14   ::= "true" ;
+Single.     Exp14   ::= TSingle ;
+Var.        Exp14   ::= Ident ;
+DVal.       Exp14   ::= Double ;
+IVal.       Exp14   ::= Integer ;
+BFalse.     Exp14   ::= "false" ;
+Rand.       Exp14   ::= "rand" ;
+Pair.       Exp13    ::= "(" Exp13 "," Exp14 ")" ;
 -- Later modality (with applicative function LApp)
-Next.       Exp12   ::= "next" Exp13 ;
-Prev.       Exp12   ::= "prev" "{" Environment "}" "." Exp13 ;
--- Syntactic sugar for empty sublist
-PrevE.      Exp12   ::= "prev" Exp13;
+Next.       Exp13   ::= "next" Exp14 ;
+Prev.       Exp13   ::= "prev" "{" Environment "}" "." Exp13 ;
+-- Syntactic sugar for empty substitution list
+PrevE.      Exp13   ::= "prev" Exp14;
 -- Syntactic sugar for prev{\x ← \x}.t with \x being all free vars in t
-PrevI.      Exp12   ::= "prevI" Exp13;
-
-Box.        Exp12   ::= "box" "{" Environment "}" "." Exp12 ;
-BoxI.       Exp12   ::= "boxI" Exp13 ;
-Unbox.      Exp12   ::= "unbox" Exp13 ;
-
-Force.      Exp12   ::= "force" Exp12 ;
-Rand.       Exp12    ::= "rand" ;
-
-ListIndex.  Exp11   ::= Exp11 "|" Exp12 "|" ;
-
+PrevI.      Exp13   ::= "prevI" Exp14;
+Box.        Exp13   ::= "box" "{" Environment "}" "." Exp13 ;
+BoxI.       Exp13   ::= "boxI" Exp14 ;
+Unbox.      Exp13   ::= "unbox" Exp14 ;
+Force.      Exp13   ::= "force" Exp14 ;
 -- Recursion
-In.         Exp11   ::= "in" Exp12 ;
-Out.        Exp11   ::= "out" Exp12 ;
-
+In.         Exp12   ::= "in" Exp13 ;
+Out.        Exp12   ::= "out" Exp13 ;
 -- Projections
-Fst.        Exp11   ::= "fst" Exp12 ;
-Snd.        Exp11   ::= "snd" Exp12 ;
-
+Fst.        Exp12   ::= "fst" Exp13 ;
+Snd.        Exp12   ::= "snd" Exp13 ;
 -- Injections
-InL.        Exp11   ::= "inL" Exp12 ;
-InR.        Exp11   ::= "inR" Exp12 ;
-
-
+InL.        Exp12   ::= "inL" Exp13 ;
+InR.        Exp12   ::= "inR" Exp13 ;
 -- (Delayed) application
-App.        Exp10   ::= Exp10 Exp11 ;
-LApp.       Exp10   ::= Exp10 TLApp Exp11;
-
-ListCons.   Exp10   ::= Exp10 ":" Exp11 ;
-ListAppend. Exp10   ::= Exp10 "++" Exp11 ;
-
+App.        Exp11   ::= Exp11 Exp12 ;
+LApp.       Exp11   ::= Exp11 TLApp Exp12;
 -- Arithmetic
-Min.        Exp9    ::= "-" Exp10 ;
+Min.        Exp10   ::= "-" Exp11 ;
 Pow.        Exp9    ::= Exp9 "^" Exp10 ;
 Mul.        Exp8    ::= Exp8 "*" Exp9 ;
 Div.        Exp8    ::= Exp8 "/" Exp9 ;
 Mod.        Exp8    ::= Exp8 "%" Exp9 ;
 Add.        Exp7    ::= Exp7 "+" Exp8 ;
 Sub.        Exp7    ::= Exp7 "-" Exp8 ;
-
 -- Boolean
 Eq.         Exp6    ::= Exp6 "=" Exp7 ;
 Lt.         Exp6    ::= Exp6 "<" Exp7 ;
 Gt.         Exp6    ::= Exp6 ">" Exp7 ;
 Leq.        Exp6    ::= Exp6 TLeq Exp7 ;
 Geq.        Exp6    ::= Exp6 TGeq Exp7 ;
-
 Not.        Exp5    ::= TNot Exp6 ;
 And.        Exp4    ::= Exp4 Conj Exp5 ;
 Or.         Exp4    ::= Exp4 Disj Exp5 ;
-
-Norm.       Exp3    ::= "normal" Exp3 ;
-
-Ite.        Exp2    ::= "if" Exp13 "then" Exp3 "else" Exp3 ;
-Match.      Exp1    ::= "match" Exp13 "{" "inL" Ident TMatch Exp2 ";" "inR" Ident TMatch Exp2 "}" ;
-
+Norm.       Exp3    ::= "normal" Exp4 ;
+Ite.        Exp2    ::= "if" Exp2 "then" Exp3 "else" Exp3 ;
+Match.      Exp1    ::= "match" Exp1 "{" "inL" Ident TMatch Exp2 ";" "inR" Ident TMatch Exp2 "}" ;
+Rec.        Exp     ::= "fix" Ident "." Exp1 ;
+LetIn.      Exp     ::= "let" Environment "in:" Exp1 ;
 Abstr.      Exp     ::= Lam Ident "." Exp ;
-Rec.        Exp     ::= "fix" Ident "." Exp ;
-coercions Exp 13 ;
 
--- List syntactic sugar
-List.       Lst     ::= "[" [ Exp ] "]" ;
-separator   Exp     "," ;
+coercions Exp 14 ;
+separator Exp "," ;
 
--- Program with definitions
-DefProg.    Prg     ::= "let" Environment "in:" Exp ;
-Prog.       Prg     ::= Exp ;
-
--- Environment passing
 Env.        Environment ::= [ Assignment ] ;
 Assign.     Assignment  ::= Ident TSub Exp ;
 separator   Assignment ";" ;
-

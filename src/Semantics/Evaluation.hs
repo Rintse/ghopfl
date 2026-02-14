@@ -122,8 +122,8 @@ eval exp@(Force e) = eval' e >>= forceEval eval'
 
 -- If then else
 eval exp@(Ite b e1 e2) = eval' b >>= go where
-    go (VBVal True) = eval' e1
-    go (VBVal False) = eval' e2
+    go VTrue = eval' e1
+    go VFalse = eval' e2
     go _ = throwError $ "If with non boolean condition:\n" ++ treeTerm exp
 
 -- Coproduct injection
@@ -162,7 +162,8 @@ eval exp@(Unbox e) = eval' e >>= go where
 eval exp = case exp of
     -- Instant values
     Val v -> return $ VVal v
-    BVal v -> return $ VBVal $ toBool v
+    BTrue -> return VTrue
+    BFalse -> return VFalse
     -- Arithmetic operators
     Min e -> evalAExp1 eval' negate e
     Pow e1 e2 -> evalAExp eval' e1 numPow e2

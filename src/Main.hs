@@ -41,9 +41,8 @@ main = do
             , optDepth = depth
             } = opts
     
-    prog <- input >>= parse verbosity
-    withDefinitions <- handleDefs prog
-    let exp = annotateVars withDefinitions
+    raw <- input >>= parse verbosity
+    let exp = annotateVars raw
 
     -- case runExcept $ typeCheck exp of
     --     Left msg -> putStrLn $ "Program failed to type check: " ++ msg

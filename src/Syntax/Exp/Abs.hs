@@ -10,17 +10,14 @@ import Prelude (Double, Integer, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
-data BConst = BTrue | BFalse
-  deriving (C.Eq, C.Ord, C.Show, C.Read)
-
 data Exp
-    = Trace Exp
+    = BTrue
     | Single TSingle
     | Var Ident
     | DVal Double
     | IVal Integer
-    | BVal BConst
-    | EList Lst
+    | BFalse
+    | Rand
     | Pair Exp Exp
     | Next Exp
     | Prev Environment Exp
@@ -30,8 +27,6 @@ data Exp
     | BoxI Exp
     | Unbox Exp
     | Force Exp
-    | Rand
-    | ListIndex Exp Exp
     | In Exp
     | Out Exp
     | Fst Exp
@@ -40,8 +35,6 @@ data Exp
     | InR Exp
     | App Exp Exp
     | LApp Exp TLApp Exp
-    | ListCons Exp Exp
-    | ListAppend Exp Exp
     | Min Exp
     | Pow Exp Exp
     | Mul Exp Exp
@@ -60,14 +53,9 @@ data Exp
     | Norm Exp
     | Ite Exp Exp Exp
     | Match Exp Ident TMatch Exp Ident TMatch Exp
-    | Abstr Lam Ident Exp
     | Rec Ident Exp
-  deriving (C.Eq, C.Ord, C.Show, C.Read)
-
-data Lst = List [Exp]
-  deriving (C.Eq, C.Ord, C.Show, C.Read)
-
-data Prg = DefProg Environment Exp | Prog Exp
+    | LetIn Environment Exp
+    | Abstr Lam Ident Exp
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Environment = Env [Assignment]

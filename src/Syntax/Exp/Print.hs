@@ -159,42 +159,33 @@ instance Print Syntax.Exp.Abs.TMatch where
   prt _ (Syntax.Exp.Abs.TMatch i) = doc $ showString i
 instance Print Syntax.Exp.Abs.TSingle where
   prt _ (Syntax.Exp.Abs.TSingle i) = doc $ showString i
-instance Print Syntax.Exp.Abs.BConst where
-  prt i = \case
-    Syntax.Exp.Abs.BTrue -> prPrec i 0 (concatD [doc (showString "true")])
-    Syntax.Exp.Abs.BFalse -> prPrec i 0 (concatD [doc (showString "false")])
-
 instance Print Syntax.Exp.Abs.Exp where
   prt i = \case
-    Syntax.Exp.Abs.Trace exp -> prPrec i 13 (concatD [doc (showString "trace"), prt 13 exp])
-    Syntax.Exp.Abs.Single tsingle -> prPrec i 13 (concatD [prt 0 tsingle])
-    Syntax.Exp.Abs.Var id_ -> prPrec i 13 (concatD [prt 0 id_])
-    Syntax.Exp.Abs.DVal d -> prPrec i 13 (concatD [prt 0 d])
-    Syntax.Exp.Abs.IVal n -> prPrec i 13 (concatD [prt 0 n])
-    Syntax.Exp.Abs.BVal bconst -> prPrec i 13 (concatD [prt 0 bconst])
-    Syntax.Exp.Abs.EList lst -> prPrec i 13 (concatD [prt 0 lst])
-    Syntax.Exp.Abs.Pair exp1 exp2 -> prPrec i 13 (concatD [doc (showString "("), prt 0 exp1, doc (showString ","), prt 1 exp2, doc (showString ")")])
-    Syntax.Exp.Abs.Next exp -> prPrec i 12 (concatD [doc (showString "next"), prt 13 exp])
-    Syntax.Exp.Abs.Prev environment exp -> prPrec i 12 (concatD [doc (showString "prev"), doc (showString "{"), prt 0 environment, doc (showString "}"), doc (showString "."), prt 13 exp])
-    Syntax.Exp.Abs.PrevE exp -> prPrec i 12 (concatD [doc (showString "prev"), prt 13 exp])
-    Syntax.Exp.Abs.PrevI exp -> prPrec i 12 (concatD [doc (showString "prevI"), prt 13 exp])
-    Syntax.Exp.Abs.Box environment exp -> prPrec i 12 (concatD [doc (showString "box"), doc (showString "{"), prt 0 environment, doc (showString "}"), doc (showString "."), prt 12 exp])
-    Syntax.Exp.Abs.BoxI exp -> prPrec i 12 (concatD [doc (showString "boxI"), prt 13 exp])
-    Syntax.Exp.Abs.Unbox exp -> prPrec i 12 (concatD [doc (showString "unbox"), prt 13 exp])
-    Syntax.Exp.Abs.Force exp -> prPrec i 12 (concatD [doc (showString "force"), prt 12 exp])
-    Syntax.Exp.Abs.Rand -> prPrec i 12 (concatD [doc (showString "rand")])
-    Syntax.Exp.Abs.ListIndex exp1 exp2 -> prPrec i 11 (concatD [prt 11 exp1, doc (showString "|"), prt 12 exp2, doc (showString "|")])
-    Syntax.Exp.Abs.In exp -> prPrec i 11 (concatD [doc (showString "in"), prt 12 exp])
-    Syntax.Exp.Abs.Out exp -> prPrec i 11 (concatD [doc (showString "out"), prt 12 exp])
-    Syntax.Exp.Abs.Fst exp -> prPrec i 11 (concatD [doc (showString "fst"), prt 12 exp])
-    Syntax.Exp.Abs.Snd exp -> prPrec i 11 (concatD [doc (showString "snd"), prt 12 exp])
-    Syntax.Exp.Abs.InL exp -> prPrec i 11 (concatD [doc (showString "inL"), prt 12 exp])
-    Syntax.Exp.Abs.InR exp -> prPrec i 11 (concatD [doc (showString "inR"), prt 12 exp])
-    Syntax.Exp.Abs.App exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, prt 11 exp2])
-    Syntax.Exp.Abs.LApp exp1 tlapp exp2 -> prPrec i 10 (concatD [prt 10 exp1, prt 0 tlapp, prt 11 exp2])
-    Syntax.Exp.Abs.ListCons exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString ":"), prt 11 exp2])
-    Syntax.Exp.Abs.ListAppend exp1 exp2 -> prPrec i 10 (concatD [prt 10 exp1, doc (showString "++"), prt 11 exp2])
-    Syntax.Exp.Abs.Min exp -> prPrec i 9 (concatD [doc (showString "-"), prt 10 exp])
+    Syntax.Exp.Abs.BTrue -> prPrec i 14 (concatD [doc (showString "true")])
+    Syntax.Exp.Abs.Single tsingle -> prPrec i 14 (concatD [prt 0 tsingle])
+    Syntax.Exp.Abs.Var id_ -> prPrec i 14 (concatD [prt 0 id_])
+    Syntax.Exp.Abs.DVal d -> prPrec i 14 (concatD [prt 0 d])
+    Syntax.Exp.Abs.IVal n -> prPrec i 14 (concatD [prt 0 n])
+    Syntax.Exp.Abs.BFalse -> prPrec i 14 (concatD [doc (showString "false")])
+    Syntax.Exp.Abs.Rand -> prPrec i 14 (concatD [doc (showString "rand")])
+    Syntax.Exp.Abs.Pair exp1 exp2 -> prPrec i 13 (concatD [doc (showString "("), prt 13 exp1, doc (showString ","), prt 14 exp2, doc (showString ")")])
+    Syntax.Exp.Abs.Next exp -> prPrec i 13 (concatD [doc (showString "next"), prt 14 exp])
+    Syntax.Exp.Abs.Prev environment exp -> prPrec i 13 (concatD [doc (showString "prev"), doc (showString "{"), prt 0 environment, doc (showString "}"), doc (showString "."), prt 13 exp])
+    Syntax.Exp.Abs.PrevE exp -> prPrec i 13 (concatD [doc (showString "prev"), prt 14 exp])
+    Syntax.Exp.Abs.PrevI exp -> prPrec i 13 (concatD [doc (showString "prevI"), prt 14 exp])
+    Syntax.Exp.Abs.Box environment exp -> prPrec i 13 (concatD [doc (showString "box"), doc (showString "{"), prt 0 environment, doc (showString "}"), doc (showString "."), prt 13 exp])
+    Syntax.Exp.Abs.BoxI exp -> prPrec i 13 (concatD [doc (showString "boxI"), prt 14 exp])
+    Syntax.Exp.Abs.Unbox exp -> prPrec i 13 (concatD [doc (showString "unbox"), prt 14 exp])
+    Syntax.Exp.Abs.Force exp -> prPrec i 13 (concatD [doc (showString "force"), prt 14 exp])
+    Syntax.Exp.Abs.In exp -> prPrec i 12 (concatD [doc (showString "in"), prt 13 exp])
+    Syntax.Exp.Abs.Out exp -> prPrec i 12 (concatD [doc (showString "out"), prt 13 exp])
+    Syntax.Exp.Abs.Fst exp -> prPrec i 12 (concatD [doc (showString "fst"), prt 13 exp])
+    Syntax.Exp.Abs.Snd exp -> prPrec i 12 (concatD [doc (showString "snd"), prt 13 exp])
+    Syntax.Exp.Abs.InL exp -> prPrec i 12 (concatD [doc (showString "inL"), prt 13 exp])
+    Syntax.Exp.Abs.InR exp -> prPrec i 12 (concatD [doc (showString "inR"), prt 13 exp])
+    Syntax.Exp.Abs.App exp1 exp2 -> prPrec i 11 (concatD [prt 11 exp1, prt 12 exp2])
+    Syntax.Exp.Abs.LApp exp1 tlapp exp2 -> prPrec i 11 (concatD [prt 11 exp1, prt 0 tlapp, prt 12 exp2])
+    Syntax.Exp.Abs.Min exp -> prPrec i 10 (concatD [doc (showString "-"), prt 11 exp])
     Syntax.Exp.Abs.Pow exp1 exp2 -> prPrec i 9 (concatD [prt 9 exp1, doc (showString "^"), prt 10 exp2])
     Syntax.Exp.Abs.Mul exp1 exp2 -> prPrec i 8 (concatD [prt 8 exp1, doc (showString "*"), prt 9 exp2])
     Syntax.Exp.Abs.Div exp1 exp2 -> prPrec i 8 (concatD [prt 8 exp1, doc (showString "/"), prt 9 exp2])
@@ -209,25 +200,17 @@ instance Print Syntax.Exp.Abs.Exp where
     Syntax.Exp.Abs.Not tnot exp -> prPrec i 5 (concatD [prt 0 tnot, prt 6 exp])
     Syntax.Exp.Abs.And exp1 conj exp2 -> prPrec i 4 (concatD [prt 4 exp1, prt 0 conj, prt 5 exp2])
     Syntax.Exp.Abs.Or exp1 disj exp2 -> prPrec i 4 (concatD [prt 4 exp1, prt 0 disj, prt 5 exp2])
-    Syntax.Exp.Abs.Norm exp -> prPrec i 3 (concatD [doc (showString "normal"), prt 3 exp])
-    Syntax.Exp.Abs.Ite exp1 exp2 exp3 -> prPrec i 2 (concatD [doc (showString "if"), prt 13 exp1, doc (showString "then"), prt 3 exp2, doc (showString "else"), prt 3 exp3])
-    Syntax.Exp.Abs.Match exp1 id_1 tmatch1 exp2 id_2 tmatch2 exp3 -> prPrec i 1 (concatD [doc (showString "match"), prt 13 exp1, doc (showString "{"), doc (showString "inL"), prt 0 id_1, prt 0 tmatch1, prt 2 exp2, doc (showString ";"), doc (showString "inR"), prt 0 id_2, prt 0 tmatch2, prt 2 exp3, doc (showString "}")])
+    Syntax.Exp.Abs.Norm exp -> prPrec i 3 (concatD [doc (showString "normal"), prt 4 exp])
+    Syntax.Exp.Abs.Ite exp1 exp2 exp3 -> prPrec i 2 (concatD [doc (showString "if"), prt 2 exp1, doc (showString "then"), prt 3 exp2, doc (showString "else"), prt 3 exp3])
+    Syntax.Exp.Abs.Match exp1 id_1 tmatch1 exp2 id_2 tmatch2 exp3 -> prPrec i 1 (concatD [doc (showString "match"), prt 1 exp1, doc (showString "{"), doc (showString "inL"), prt 0 id_1, prt 0 tmatch1, prt 2 exp2, doc (showString ";"), doc (showString "inR"), prt 0 id_2, prt 0 tmatch2, prt 2 exp3, doc (showString "}")])
+    Syntax.Exp.Abs.Rec id_ exp -> prPrec i 0 (concatD [doc (showString "fix"), prt 0 id_, doc (showString "."), prt 1 exp])
+    Syntax.Exp.Abs.LetIn environment exp -> prPrec i 0 (concatD [doc (showString "let"), prt 0 environment, doc (showString "in:"), prt 1 exp])
     Syntax.Exp.Abs.Abstr lam id_ exp -> prPrec i 0 (concatD [prt 0 lam, prt 0 id_, doc (showString "."), prt 0 exp])
-    Syntax.Exp.Abs.Rec id_ exp -> prPrec i 0 (concatD [doc (showString "fix"), prt 0 id_, doc (showString "."), prt 0 exp])
-
-instance Print Syntax.Exp.Abs.Lst where
-  prt i = \case
-    Syntax.Exp.Abs.List exps -> prPrec i 0 (concatD [doc (showString "["), prt 0 exps, doc (showString "]")])
 
 instance Print [Syntax.Exp.Abs.Exp] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
-
-instance Print Syntax.Exp.Abs.Prg where
-  prt i = \case
-    Syntax.Exp.Abs.DefProg environment exp -> prPrec i 0 (concatD [doc (showString "let"), prt 0 environment, doc (showString "in:"), prt 0 exp])
-    Syntax.Exp.Abs.Prog exp -> prPrec i 0 (concatD [prt 0 exp])
 
 instance Print Syntax.Exp.Abs.Environment where
   prt i = \case

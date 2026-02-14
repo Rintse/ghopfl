@@ -43,15 +43,12 @@ transTSingle :: Syntax.Types.Abs.TSingle -> Result
 transTSingle x = case x of
   Syntax.Types.Abs.TSingle string -> failure x
 
-transBase :: Syntax.Types.Abs.Base -> Result
-transBase x = case x of
+transTy :: Syntax.Types.Abs.Ty -> Result
+transTy x = case x of
+  Syntax.Types.Abs.Single tsingle -> failure x
   Syntax.Types.Abs.Bool -> failure x
   Syntax.Types.Abs.Real -> failure x
   Syntax.Types.Abs.Var ident -> failure x
-
-transTy :: Syntax.Types.Abs.Ty -> Result
-transTy x = case x of
-  Syntax.Types.Abs.Leaf base -> failure x
   Syntax.Types.Abs.Prod ty1 ty2 -> failure x
   Syntax.Types.Abs.Coprod ty1 ty2 -> failure x
   Syntax.Types.Abs.Func ty1 trarrow ty2 -> failure x
