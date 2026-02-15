@@ -1,11 +1,11 @@
 -- Syntax of GHOPFL defined in LBNF format
 -- To be processed into a parser and lexer using BNFC
 
--- Environment is entrypoint to enable parsing of environments from the command line
+-- Environment is entrypoint to enable parsing of envs from the command line
 entrypoints Exp, Environment;
+
 comment     "#" ;
 
--- Tokens
 token       Lam     ('λ' | '\\') ;
 token       Conj    ('∧' | 'a''n''d') ;
 token       Disj    ('∨' | 'o''r') ;
@@ -15,10 +15,8 @@ token       TGeq    ('≥' | '>''=') ;
 token       TLApp   ('⊙' | '(''*'')') ;
 token       TSub    ('←' | '<''-') ;
 token       TMatch  ('→' | '-''>') ;
--- Singleton token
 token       TSingle ( '𝟙' | '{''*''}' ) ;
 
--- Terms
 BTrue.      Exp14   ::= "true" ;
 Single.     Exp14   ::= TSingle ;
 Var.        Exp14   ::= Ident ;
@@ -26,8 +24,7 @@ DVal.       Exp14   ::= Double ;
 IVal.       Exp14   ::= Integer ;
 BFalse.     Exp14   ::= "false" ;
 Rand.       Exp14   ::= "rand" ;
-Pair.       Exp13    ::= "(" Exp13 "," Exp14 ")" ;
--- Later modality (with applicative function LApp)
+Pair.       Exp13   ::= "(" Exp13 "," Exp14 ")" ;
 Next.       Exp13   ::= "next" Exp14 ;
 Prev.       Exp13   ::= "prev" "{" Environment "}" "." Exp13 ;
 -- Syntactic sugar for empty substitution list
@@ -38,19 +35,14 @@ Box.        Exp13   ::= "box" "{" Environment "}" "." Exp13 ;
 BoxI.       Exp13   ::= "boxI" Exp14 ;
 Unbox.      Exp13   ::= "unbox" Exp14 ;
 Force.      Exp13   ::= "force" Exp14 ;
--- Recursion
 In.         Exp12   ::= "in" Exp13 ;
 Out.        Exp12   ::= "out" Exp13 ;
--- Projections
 Fst.        Exp12   ::= "fst" Exp13 ;
 Snd.        Exp12   ::= "snd" Exp13 ;
--- Injections
 InL.        Exp12   ::= "inL" Exp13 ;
 InR.        Exp12   ::= "inR" Exp13 ;
--- (Delayed) application
 App.        Exp11   ::= Exp11 Exp12 ;
 LApp.       Exp11   ::= Exp11 TLApp Exp12;
--- Arithmetic
 Min.        Exp10   ::= "-" Exp11 ;
 Pow.        Exp9    ::= Exp9 "^" Exp10 ;
 Mul.        Exp8    ::= Exp8 "*" Exp9 ;
@@ -58,7 +50,6 @@ Div.        Exp8    ::= Exp8 "/" Exp9 ;
 Mod.        Exp8    ::= Exp8 "%" Exp9 ;
 Add.        Exp7    ::= Exp7 "+" Exp8 ;
 Sub.        Exp7    ::= Exp7 "-" Exp8 ;
--- Boolean
 Eq.         Exp6    ::= Exp6 "=" Exp7 ;
 Lt.         Exp6    ::= Exp6 "<" Exp7 ;
 Gt.         Exp6    ::= Exp6 ">" Exp7 ;

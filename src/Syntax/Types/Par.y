@@ -61,50 +61,35 @@ TRarrow  : L_TRarrow { Syntax.Types.Abs.TRarrow $1 }
 TSingle :: { Syntax.Types.Abs.TSingle }
 TSingle  : L_TSingle { Syntax.Types.Abs.TSingle $1 }
 
-Ty10 :: { Syntax.Types.Abs.Ty }
-Ty10
+Ty5 :: { Syntax.Types.Abs.Ty }
+Ty5
   : TSingle { Syntax.Types.Abs.Single $1 }
   | 'bool' { Syntax.Types.Abs.Bool }
   | 'real' { Syntax.Types.Abs.Real }
   | Ident { Syntax.Types.Abs.Var $1 }
   | '(' Ty ')' { $2 }
 
-Ty9 :: { Syntax.Types.Abs.Ty }
-Ty9 : Ty9 'x' Ty10 { Syntax.Types.Abs.Prod $1 $3 } | Ty10 { $1 }
-
-Ty8 :: { Syntax.Types.Abs.Ty }
-Ty8 : Ty8 '+' Ty9 { Syntax.Types.Abs.Coprod $1 $3 } | Ty9 { $1 }
-
-Ty7 :: { Syntax.Types.Abs.Ty }
-Ty7
-  : Ty7 TRarrow Ty8 { Syntax.Types.Abs.Func $1 $2 $3 } | Ty8 { $1 }
-
-Ty5 :: { Syntax.Types.Abs.Ty }
-Ty5
-  : TLater Ty6 { Syntax.Types.Abs.TyLater $1 $2 }
-  | TBox Ty6 { Syntax.Types.Abs.TyBox $1 $2 }
-  | Ty6 { $1 }
-
 Ty4 :: { Syntax.Types.Abs.Ty }
-Ty4
-  : TMu Ident '.' Ty5 { Syntax.Types.Abs.TyVar $1 $2 $4 }
-  | TForall Ident '.' Ty5 { Syntax.Types.Abs.TyForall $1 $2 $4 }
-  | Ty5 { $1 }
-
-Ty :: { Syntax.Types.Abs.Ty }
-Ty : Ty1 { $1 }
-
-Ty1 :: { Syntax.Types.Abs.Ty }
-Ty1 : Ty2 { $1 }
-
-Ty2 :: { Syntax.Types.Abs.Ty }
-Ty2 : Ty3 { $1 }
+Ty4 : Ty4 'x' Ty5 { Syntax.Types.Abs.Prod $1 $3 } | Ty5 { $1 }
 
 Ty3 :: { Syntax.Types.Abs.Ty }
-Ty3 : Ty4 { $1 }
+Ty3 : Ty3 '+' Ty4 { Syntax.Types.Abs.Coprod $1 $3 } | Ty4 { $1 }
 
-Ty6 :: { Syntax.Types.Abs.Ty }
-Ty6 : Ty7 { $1 }
+Ty2 :: { Syntax.Types.Abs.Ty }
+Ty2
+  : Ty2 TRarrow Ty3 { Syntax.Types.Abs.Func $1 $2 $3 } | Ty3 { $1 }
+
+Ty1 :: { Syntax.Types.Abs.Ty }
+Ty1
+  : TLater Ty2 { Syntax.Types.Abs.TyLater $1 $2 }
+  | TBox Ty2 { Syntax.Types.Abs.TyBox $1 $2 }
+  | Ty2 { $1 }
+
+Ty :: { Syntax.Types.Abs.Ty }
+Ty
+  : TMu Ident '.' Ty1 { Syntax.Types.Abs.TyVar $1 $2 $4 }
+  | TForall Ident '.' Ty1 { Syntax.Types.Abs.TyForall $1 $2 $4 }
+  | Ty1 { $1 }
 
 {
 

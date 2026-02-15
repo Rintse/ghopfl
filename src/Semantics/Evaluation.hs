@@ -56,11 +56,6 @@ evaluate v prog n s env = do
 -- Takes an AST and calculates the result of the program using big step semantics
 eval :: Exp -> EvalMonad Value
 
--- TODO: make trace useful
-eval (Trace e) = do 
-    r <- eval' e
-    trace ("TRACE:\n" ++ show e ++ "\nV\n" ++ show r) $ return r
-
 -- Variables
 eval exp@(Var (Ident v i r)) = asks (HM.lookup v . view evalEnv) >>= go where
     go (Just e) = eval' e

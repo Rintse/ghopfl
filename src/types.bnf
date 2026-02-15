@@ -11,18 +11,18 @@ token       TMu      ('μ' | '|''u') ;
 token       TRarrow  ('→' | '-''>') ;
 token       TSingle  ( '𝟙' | '{''*''}' ) ;
 
-Single.     Ty10    ::= TSingle ;
-Bool.       Ty10    ::= "bool" ;
-Real.       Ty10    ::= "real" ;
-Var.        Ty10    ::= Ident ;
+Single.     Ty5     ::= TSingle ;
+Bool.       Ty5     ::= "bool" ;
+Real.       Ty5     ::= "real" ;
+Var.        Ty5     ::= Ident ;
 
 -- TODO: naming?
-Prod.       Ty9     ::= Ty9 "x" Ty10 ; 
-Coprod.     Ty8     ::= Ty8 "+" Ty9 ; 
-Func.       Ty7     ::= Ty7 TRarrow Ty8 ; 
-TyLater.    Ty5     ::= TLater Ty6 ;
-TyBox.      Ty5     ::= TBox Ty6 ;
-TyVar.      Ty4     ::= TMu Ident "." Ty5 ;
-TyForall.   Ty4     ::= TForall Ident "." Ty5 ;
+Prod.       Ty4     ::= Ty4 "x" Ty5 ; 
+Coprod.     Ty3     ::= Ty3 "+" Ty4 ; 
+Func.       Ty2     ::= Ty2 TRarrow Ty3 ; 
+TyLater.    Ty1     ::= TLater Ty2 ;
+TyBox.      Ty1     ::= TBox Ty2 ;
+TyVar.      Ty      ::= TMu Ident "." Ty1 ;
+TyForall.   Ty      ::= TForall Ident "." Ty1 ;
 
-coercions Ty 10 ;
+coercions Ty 5 ;

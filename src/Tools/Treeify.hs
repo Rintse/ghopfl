@@ -27,7 +27,6 @@ instance Treeish Exp where
     toTree exp = case exp of
         -- Regular expressions
         Single -> Node "()" []
-        Trace e -> toTree e
         Var x -> toTree x
         Val v -> Node (show v) []
         BFalse -> Node "False" []

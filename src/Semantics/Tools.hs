@@ -1,8 +1,8 @@
 -- Defines some helper functions for the Evaluation module
 {-# LANGUAGE GeneralizedNewtypeDeriving, DeriveFunctor #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE TemplateHaskell, RankNTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Semantics.Tools where
 
@@ -23,7 +23,8 @@ import Syntax.Expression
 import Syntax.Number
 import Syntax.Exp.ErrM
 import qualified Syntax.Exp.Abs as Raw
-import Control.Lens
+import qualified Control.Lens as Lens
+import Control.Lens (over, view, set)
 
 -- Environment as hashmap from names to values
 type Env = HashMap String Exp
@@ -32,14 +33,14 @@ data EvalContext = EvalContext
     { _evalVerbosity :: Int
     , _evalEnv :: Env
     , _evalDepth :: Integer
-    } deriving ()
-makeLenses ''EvalContext
+    }
+Lens.makeLenses ''EvalContext
 
 data ProbilityContext = ProbilityContext
     { _randomDraws :: [Double]
     , _evalDensity :: Double
     }
-makeLenses ''ProbilityContext
+Lens.makeLenses ''ProbilityContext
 
 newtype EvalMonad a = EvalMona
     { evalMonad :: ReaderT EvalContext (StateT ProbilityContext (Except String)) a
@@ -61,11 +62,7 @@ mkEnv (Raw.Env e) = fromList $ fmap mkAssign e
         (x, annotateVars exp)
 
 printEnv :: Env -> String
-printEnv m =
-    show $
-        Prelude.map
-            (\x -> fst x ++ "=" ++ show (snd x))
-            (toList m)
+printEnv m = show $ Prelude.map (\x -> fst x ++ "=" ++ show (snd x)) (toList m)
 
 -- Evaluates 2 arguments and pairs them to allow for easy pattern matching
 match2 :: (Exp -> EvalMonad Value) -> Exp -> Exp -> EvalMonad (Value, Value)
@@ -110,10 +107,10 @@ evalAExp ::
     (Number -> Number -> Number) ->
     Exp ->
     EvalMonad Value
-evalAExp f e1 op e2 =
-    match2 f e1 e2 >>= \case
-        (VVal v1, VVal v2) -> return $ VVal $ op v1 v2
-        other -> throwError $ "Non-real args to arithmetic operator:\n" ++ show other
+evalAExp f e1 op e2 = match2 f e1 e2 >>= go where
+    go (VVal v1, VVal v2) = return $ VVal $ op v1 v2
+    go other = throwError $ 
+        "Non-real args to arithmetic operator:\n" ++ show other
 
 evalAExp1 ::
     (Exp -> EvalMonad Value) ->
@@ -122,10 +119,9 @@ evalAExp1 ::
     ) ->
     Exp ->
     EvalMonad Value
-evalAExp1 f op e =
-    f e >>= \case
-        (VVal v) -> return $ VVal $ op v
-        other -> throwError $ "Non-real arg to arithmetic operator:\n" ++ show other
+evalAExp1 f op e = f e >>= go where
+    go (VVal v) = return $ VVal $ op v
+    go other = throwError $ "Non-real arg to arithmetic operator:\n" ++ show other
 
 toBool :: Value -> EvalMonad Bool
 toBool VTrue = return True
@@ -166,15 +162,14 @@ evalRelop ::
     (Number -> Number -> Bool) ->
     Exp ->
     EvalMonad Value
-evalRelop f e1 op e2 =
-    match2 f e1 e2 >>= \case
-        (VVal v1, VVal v2) -> return $ fromBool $ op v1 v2
-        other -> throwError $ "Non-real args to relative operator:\n" ++ show other
+evalRelop f e1 op e2 = match2 f e1 e2 >>= go where
+    go (VVal v1, VVal v2) = return $ fromBool $ op v1 v2
+    go other = throwError $ "Non-real args to relative operator:\n" ++ show other
 
 -- Evluates everything underneath certain values to make it readable
 -- TODO: shouldn't the semantics dictate this?
 forceEval :: (Exp -> EvalMonad Value) -> Value -> EvalMonad Value
-forceEval f = \case
+forceEval f v = case v of
     -- Still refuse to go underneath too many nexts
     VNext e -> do
         depth <- asks view evalDepth

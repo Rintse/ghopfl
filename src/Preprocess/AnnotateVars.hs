@@ -1,68 +1,82 @@
-{-# LANGUAGE DeriveTraversable #-}
 -- Defines a custom datastructure to contain the program, which is
 -- nearly identical to the raw parsed data, except that identifiers
 -- are annotated with a unique id to aid in substitution. Also defines a
 -- function that transforms raw expressions into their annotated versions
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE TemplateHaskell, RankNTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Preprocess.AnnotateVars where
 
 import qualified Syntax.Exp.Abs as Raw
-
 import Syntax.Expression
 import Syntax.Number
-
 import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Bifunctor
 import Data.Functor.Foldable
 import Data.Functor.Foldable.TH
-import qualified Data.HashMap.Lazy as HM
+import qualified Data.Map as HM
 import Data.List.Index
 import qualified Data.Set as Set
 import Debug.Trace
 import Preprocess.Definitions (runDef)
+import qualified Control.Lens as Lens
+import Control.Lens (over, view, set)
 
 -- State environment contains a counter and a hashmap in which the values
 -- track all the names that we are currently substituting the key for.
 -- The last element in the sequence is the name to substitute the key for.
-type IdMap = HM.HashMap String [Int]
+type IdMap = HM.Map String [Int]
+type DefMap = HM.Map String Exp
+
+data TransformContext = TransformContext
+    { _varIds :: IdMap
+    , _letIns :: DefMap
+    }
+Lens.makeLenses ''TransformContext
+
 newtype IdMonad a = IdMonad
-    { runId :: StateT Int (Reader IdMap) a
+    { runId :: StateT Int (Reader TransformContext) a
     }
     deriving
         ( Functor
         , Applicative
         , Monad
         , MonadState Int
-        , MonadReader IdMap
+        , MonadReader TransformContext
         )
 
 -- Increments counter and pushes new substitute for x onto m[x]
+-- Note: insertWith calls (++) with argument order: (++) new old
 pushVar :: Raw.Ident -> Int -> IdMap -> IdMap
 pushVar (Raw.Ident x) c = HM.insertWith (++) x [c]
 
--- Pushes all variables in a substitution list
+-- Pushes all variables in a assignment list
 pushVars :: [Raw.Assignment] -> Int -> IdMap -> IdMap
 pushVars l c m = do
     let idxd = Prelude.map (first (+ c)) (indexed l)
     let push1 m1 (id, Raw.Assign x _ t) = pushVar x id m1
-    Prelude.foldl push1 m idxd
+    foldl push1 m idxd
 
 -- Rename an individual substitution
 varAssign :: Raw.Assignment -> IdMonad Assignment
 varAssign (Raw.Assign x _ t) = do
     cur <- modify (+ 1) >> get -- x is not bound in t
-    asks (Assign . (getSub x . pushVar x cur)) <*> transform t
+    ident <- asks (getSub x . pushVar x cur . view varIds)
+    Assign ident <$> transform t
 
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
 getSub (Raw.Ident x) m = do
-    case m HM.! x of
-        [] -> error "This should never happen"
-        (i:_) -> Ident x i 0
+    case m HM.!? x of
+        Nothing -> error "This should never happen: no key"
+        Just [] -> error "This should never happen: empty list"
+        Just (i:_) -> Ident x i 0
 
 -- Gets all free variables in an assignment list
 getFreesL :: [Assignment] -> Set.Set Ident
@@ -95,14 +109,8 @@ freeList e = Raw.Env $ Prelude.map idSubst $ Set.toList $ getFrees (annotateVars
 -- idenfiers are made unique with an id and recursion depth tag.
 transform :: Raw.Exp -> IdMonad Exp
 transform exp = case exp of
-    Raw.LetIn (Raw.Env a) e -> do
-        e' <- transform e
-        let assignTransform (Raw.Assign (Raw.Ident x) _ y) = Assign (Ident x 0 0) <$> transform y
-        subs <- mapM assignTransform a
-        return $ foldl runDef e' subs
-
     -- Annotate variables with a unique ID
-    Raw.Var v -> asks (Var . getSub v)
+    Raw.Var v -> asks (Var . getSub v . view varIds)
     -- Integers and doubles into one overarching number type
     Raw.DVal v -> return $ Val $ Fract v
     Raw.IVal v -> return $ Val $ Whole v
@@ -139,47 +147,50 @@ transform exp = case exp of
     Raw.Eq e1 e2 -> liftA2 Eq (transform e1) (transform e2)
     Raw.Lt e1 e2 -> liftA2 Lt (transform e1) (transform e2)
     Raw.Gt e1 e2 -> liftA2 Gt (transform e1) (transform e2)
-    Raw.Ite b e1 e2 ->
-        liftA3
-            Ite
-            (transform b)
-            (transform e1)
-            (transform e2)
+    Raw.Ite b e1 e2 -> liftA3 Ite (transform b) (transform e1) (transform e2)
     -- Syntactic sugar
     Raw.PrevE e -> transform $ Raw.Prev (Raw.Env []) e
     Raw.BoxI e -> transform $ Raw.Box (freeList e) e
     Raw.PrevI e -> transform $ Raw.Prev (freeList e) e
     -- WARNING: Here be binders
+    Raw.LetIn (Raw.Env l) e -> do
+        cur <- gets (+ 1)
+        subs <- mapM varAssign l
+        re <- local (over varIds (pushVars l cur)) $ transform e -- vars in l are bound in e
+        undefined
+        -- return $ foldl runDef e' subs
     Raw.Box (Raw.Env l) e -> do
         cur <- gets (+ 1)
         rl <- mapM varAssign l
-        re <- local (pushVars l cur) $ transform e -- vars in l are bound in e
+        re <- local (over varIds (pushVars l cur)) $ transform e -- vars in l are bound in e
         return $ Box (Env rl) re
     Raw.Prev (Raw.Env l) e -> do
         cur <- gets (+ 1)
         rl <- mapM varAssign l
-        re <- local (pushVars l cur) $ transform e -- all vars in l are bound in e
+        re <- local (over varIds (pushVars l cur)) $ transform e -- all vars in l are bound in e
         return $ Prev (Env rl) re
     Raw.Match e x _ l y _ r -> do
         re <- transform e -- Nothing binds e
         cur <- modify (+ 1) >> get -- x is bound in l
-        rx <- asks (getSub x . pushVar x cur)
-        rl <- local (pushVar x cur) $ transform l
+        rx <- asks (getSub x . pushVar x cur . view varIds)
+        rl <- local (over varIds (pushVar x cur)) $ transform l
         cur <- modify (+ 1) >> get -- y is bound in r
-        ry <- asks (getSub y . pushVar y cur)
-        rr <- local (pushVar y cur) $ transform r
+        ry <- asks (getSub y . pushVar y cur. view varIds)
+        rr <- local (over varIds (pushVar y cur)) $ transform r
         return $ Match re rx rl ry rr
     Raw.Abstr _ x e -> do
         cur <- modify (+ 1) >> get -- x is bound in e
-        r1 <- asks (getSub x . pushVar x cur)
-        r2 <- local (pushVar x cur) $ transform e
+        r1 <- asks (getSub x . pushVar x cur . view varIds)
+        r2 <- local (over varIds (pushVar x cur)) $ transform e
         return $ Abstr r1 r2
     Raw.Rec f e -> do
         cur <- modify (+ 1) >> get -- f is bound in e
-        r1 <- asks (getSub f . pushVar f cur)
-        r2 <- local (pushVar f cur) $ transform e
+        r1 <- asks (getSub f . pushVar f cur . view varIds)
+        r2 <- local (over varIds (pushVar f cur)) $ transform e
         return $ Rec r1 r2
 
 -- Translate a raw tree into the id tree with annotated identifiers
 annotateVars :: Raw.Exp -> Exp
-annotateVars e = runReader (evalStateT (runId (transform e)) 0) HM.empty
+annotateVars e = do
+    let ctx = TransformContext HM.empty HM.empty
+    runReader (evalStateT (runId (transform e)) 0) ctx
