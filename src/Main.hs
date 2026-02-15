@@ -14,6 +14,7 @@ import System.Environment (getArgs)
 import System.Exit
 import Tools.Treeify (showProg)
 import Control.Monad.Except
+import Preprocess.Builtins
 
 parseArgs :: IO Options
 parseArgs = do
@@ -42,7 +43,9 @@ main = do
             } = opts
     
     raw <- input >>= parse verbosity
-    let exp = annotateVars raw
+    let e2 = annotateVars raw
+    e3 <- handleLetIns e2
+    let exp = e3
 
     -- case runExcept $ typeCheck exp of
     --     Left msg -> putStrLn $ "Program failed to type check: " ++ msg

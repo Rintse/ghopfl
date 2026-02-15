@@ -29,10 +29,10 @@ import qualified Control.Lens as Lens
 import Control.Lens (over, view, set)
 
 -- State environment contains a counter and a hashmap in which the values
--- track all the names that we are currently substituting the key for.
--- The last element in the sequence is the name to substitute the key for.
+-- track all the ids that we are currently substituting the key for.
+-- The last element in the sequence is the id to substitute the key for.
 type IdMap = HM.Map String [Int]
-type DefMap = HM.Map String Exp
+type DefMap = HM.Map (String, Int) Exp
 
 data TransformContext = TransformContext
     { _varIds :: IdMap
@@ -110,7 +110,8 @@ freeList e = Raw.Env $ Prelude.map idSubst $ Set.toList $ getFrees (annotateVars
 transform :: Raw.Exp -> IdMonad Exp
 transform exp = case exp of
     -- Annotate variables with a unique ID
-    Raw.Var v -> asks (Var . getSub v . view varIds)
+    Raw.Var v -> do
+        asks (Var . getSub v . view varIds)
     -- Integers and doubles into one overarching number type
     Raw.DVal v -> return $ Val $ Fract v
     Raw.IVal v -> return $ Val $ Whole v
@@ -155,19 +156,18 @@ transform exp = case exp of
     -- WARNING: Here be binders
     Raw.LetIn (Raw.Env l) e -> do
         cur <- gets (+ 1)
-        subs <- mapM varAssign l
-        re <- local (over varIds (pushVars l cur)) $ transform e -- vars in l are bound in e
-        undefined
-        -- return $ foldl runDef e' subs
+        rl <- mapM varAssign l
+        re <- local (over varIds (pushVars l cur)) $ transform e 
+        return $ LetIn (Env rl) re
     Raw.Box (Raw.Env l) e -> do
         cur <- gets (+ 1)
         rl <- mapM varAssign l
-        re <- local (over varIds (pushVars l cur)) $ transform e -- vars in l are bound in e
+        re <- local (over varIds (pushVars l cur)) $ transform e 
         return $ Box (Env rl) re
     Raw.Prev (Raw.Env l) e -> do
         cur <- gets (+ 1)
         rl <- mapM varAssign l
-        re <- local (over varIds (pushVars l cur)) $ transform e -- all vars in l are bound in e
+        re <- local (over varIds (pushVars l cur)) $ transform e
         return $ Prev (Env rl) re
     Raw.Match e x _ l y _ r -> do
         re <- transform e -- Nothing binds e
@@ -179,12 +179,12 @@ transform exp = case exp of
         rr <- local (over varIds (pushVar y cur)) $ transform r
         return $ Match re rx rl ry rr
     Raw.Abstr _ x e -> do
-        cur <- modify (+ 1) >> get -- x is bound in e
+        cur <- modify (+ 1) >> get
         r1 <- asks (getSub x . pushVar x cur . view varIds)
         r2 <- local (over varIds (pushVar x cur)) $ transform e
         return $ Abstr r1 r2
     Raw.Rec f e -> do
-        cur <- modify (+ 1) >> get -- f is bound in e
+        cur <- modify (+ 1) >> get
         r1 <- asks (getSub f . pushVar f cur . view varIds)
         r2 <- local (over varIds (pushVar f cur)) $ transform e
         return $ Rec r1 r2

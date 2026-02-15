@@ -17,6 +17,7 @@ data Exp
     | -- Base types
       Var Ident
     | Val Number
+    | LetIn Environment Exp
     | BFalse
     | BTrue
     | -- Lambda calculus with ite

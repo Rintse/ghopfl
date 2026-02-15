@@ -11,15 +11,13 @@ import qualified Preprocess.Builtins.Stream as BStream (builtins)
 import Syntax.Parse (parseExp)
 import Syntax.Exp.Abs
 
--- Add prefixes to the builtins
-builtinsRaw =
-    BFunc.builtins
-        ++ BMath.builtins
-        ++ BStream.builtins
-        ++ BConat.builtins
-        ++ BRandom.builtins
-        ++ BDelRes.builtins
-        ++ BLists.builtins
+builtinsRaw = BFunc.builtins
+    ++ BMath.builtins
+    ++ BStream.builtins
+    ++ BConat.builtins
+    ++ BRandom.builtins
+    ++ BDelRes.builtins
+    ++ BLists.builtins
 
 parseBuiltins :: [Assignment]
 parseBuiltins = do
