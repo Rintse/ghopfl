@@ -1,0 +1,8 @@
+let 
+    f <- \x . match x {
+        inL x -> x * x ;
+        inR x -> x and x
+    } ;
+    value <- inL 4
+in:
+    f value

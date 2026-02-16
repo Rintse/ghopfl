@@ -14,19 +14,21 @@ class Treeish a where
     toTree :: a -> Tree String
 
 instance Treeish Ident where
-    toTree (Ident x id d) = Node (x ++ " (" ++ show id ++ ") " ++ "[" ++ show d ++ "]") []
+    toTree (Ident x id depth) = Node (x ++ " (" ++ show id ++ ") " ++ 
+        if depth > 0 then "[" ++ show depth ++ "]" else "") []
 
 instance Treeish Environment where
-    toTree (Env l) = Node "Substitution List" (map toTree l)
+    toTree (Env l) = Node "Assignment List" (map toTree l)
 
 instance Treeish Assignment where
-    toTree (Assign x t) = Node "Substitution" [toTree x, toTree t]
+    toTree (Assign x t) = Node "Assignment" [toTree x, toTree t]
 
 -- TODO: is this really needed?
 instance Treeish Exp where
     toTree exp = case exp of
         -- Regular expressions
         Single -> Node "()" []
+        LetIn env e -> Node "LetIn" [toTree env, toTree e]
         Var x -> toTree x
         Val v -> Node (show v) []
         BFalse -> Node "False" []

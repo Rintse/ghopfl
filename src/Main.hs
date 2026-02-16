@@ -44,7 +44,8 @@ main = do
     
     raw <- input >>= parse verbosity
     let e2 = annotateVars raw
-    e3 <- handleLetIns e2
+    -- e3 <- handleLetIns e2
+    let e3 = e2
     let exp = e3
 
     -- case runExcept $ typeCheck exp of

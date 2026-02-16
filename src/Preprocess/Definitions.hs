@@ -19,17 +19,17 @@ defSub :: Exp -> Reader Assignment Exp
 defSub exp = do
     a@(Assign (Ident s i1 _) t) <- ask
     let doList (Assign x t) = Assign x $ runDef t a
-    ( anaM $ \case
-            e@(Var (Ident x i2 _)) ->
-                if x == s && i1 == i2
-                    then return $ project t
-                    else return $ project e
-            -- LetIn (Env l)
-            Prev (Env l) e -> return $ PrevF (Env $ map doList l) e
-            Box (Env l) e -> return $ BoxF (Env $ map doList l) e
-            other -> return $ project other
-        )
-        exp
+    let go e@(Var (Ident x i2 _)) = if x == s && i1 == i2
+        then return $ project t
+        else return $ project e
+    let go (Prev (Env l) e) = return $ PrevF (Env $ map doList l) e
+    let go (Box (Env l) e) = return $ BoxF (Env $ map doList l) e
+    let go (LetIn (Env l) e) = do
+            -- r <- lift $ local id $ project e
+            -- TODO: can this be arranged with ana?
+            undefined
+    let go other = return $ project other
+    anaM go exp
 
 -- Runs definition substitution inside a reader monad
 runDef :: Exp -> Assignment -> Exp
@@ -47,22 +47,22 @@ inDefs a = a
 toSet :: [Assignment] -> Set.Set String
 toSet l = Set.fromList $ map (\(Assign (Ident x _ _) _) -> x) l
 
-handleLetIns :: Exp -> IO Exp
-handleLetIns e = do
-    let builtins = parseBuiltins
-    let getName = map (\(Assign (Ident s _ _) b) -> s)
-    let builtinNames = Set.fromList $ getName builtins
-    let envNames = Set.fromList $ getName l
-    let usedBuiltinNames = Set.intersection builtinNames envNames
-
-    unless
-        (null usedBuiltinNames)
-        ( do
-            putStrLn "Warning. Used reserved name:"
-            mapM_ (putStrLn . ("- " ++)) (Set.toList usedBuiltinNames)
-        )
-    
-    undefined
+-- handleLetIns :: Exp -> IO Exp
+-- handleLetIns e = do
+--     let builtins = parseBuiltins
+--     let getName = map (\(Assign (Ident s _ _) b) -> s)
+--     let builtinNames = Set.fromList $ getName builtins
+--     let envNames = Set.fromList $ getName l
+--     let usedBuiltinNames = Set.intersection builtinNames envNames
+--
+--     unless
+--         (null usedBuiltinNames)
+--         ( do
+--             putStrLn "Warning. Used reserved name:"
+--             mapM_ (putStrLn . ("- " ++)) (Set.toList usedBuiltinNames)
+--         )
+--     
+--     undefined
 
 -- Perform definition substitutions for a list of defs
 -- handleDefs :: Exp -> IO Exp
