@@ -66,8 +66,7 @@ LetIn.      Exp     ::= "let" Environment "in:" Exp1 ;
 Abstr.      Exp     ::= Lam Ident "." Exp ;
 
 coercions Exp 14 ;
-separator Exp "," ;
 
-Env.        Environment ::= [ Assignment ] ;
 Assign.     Assignment  ::= Ident TSub Exp ;
-separator   Assignment ";" ;
+Env.        Environment ::= [ Assignment ] ;
+terminator nonempty Assignment ";" ;

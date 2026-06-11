@@ -1,0 +1,6 @@
+let 
+    x <- let 
+        z <- 2; 
+    in: z; 
+    y <- 3; 
+in: x * y

@@ -207,20 +207,15 @@ instance Print Syntax.Exp.Abs.Exp where
     Syntax.Exp.Abs.LetIn environment exp -> prPrec i 0 (concatD [doc (showString "let"), prt 0 environment, doc (showString "in:"), prt 1 exp])
     Syntax.Exp.Abs.Abstr lam id_ exp -> prPrec i 0 (concatD [prt 0 lam, prt 0 id_, doc (showString "."), prt 0 exp])
 
-instance Print [Syntax.Exp.Abs.Exp] where
-  prt _ [] = concatD []
-  prt _ [x] = concatD [prt 0 x]
-  prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
+instance Print Syntax.Exp.Abs.Assignment where
+  prt i = \case
+    Syntax.Exp.Abs.Assign id_ tsub exp -> prPrec i 0 (concatD [prt 0 id_, prt 0 tsub, prt 0 exp])
 
 instance Print Syntax.Exp.Abs.Environment where
   prt i = \case
     Syntax.Exp.Abs.Env assignments -> prPrec i 0 (concatD [prt 0 assignments])
 
-instance Print Syntax.Exp.Abs.Assignment where
-  prt i = \case
-    Syntax.Exp.Abs.Assign id_ tsub exp -> prPrec i 0 (concatD [prt 0 id_, prt 0 tsub, prt 0 exp])
-
 instance Print [Syntax.Exp.Abs.Assignment] where
   prt _ [] = concatD []
-  prt _ [x] = concatD [prt 0 x]
+  prt _ [x] = concatD [prt 0 x, doc (showString ";")]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ";"), prt 0 xs]

@@ -12,7 +12,6 @@ import Debug.Trace
 import Semantics.Substitution
 import System.Exit
 import Syntax.Expression
-import Preprocess.Builtins (parseBuiltins)
 
 -- Perform a single definition substitution
 defSub :: Exp -> Reader Assignment Exp
@@ -24,10 +23,7 @@ defSub exp = do
         else return $ project e
     let go (Prev (Env l) e) = return $ PrevF (Env $ map doList l) e
     let go (Box (Env l) e) = return $ BoxF (Env $ map doList l) e
-    let go (LetIn (Env l) e) = do
-            -- r <- lift $ local id $ project e
-            -- TODO: can this be arranged with ana?
-            undefined
+    let go (LetIn (Env l) e) = return $ LetInF (Env $ map doList l) e
     let go other = return $ project other
     anaM go exp
 
@@ -47,22 +43,21 @@ inDefs a = a
 toSet :: [Assignment] -> Set.Set String
 toSet l = Set.fromList $ map (\(Assign (Ident x _ _) _) -> x) l
 
--- handleLetIns :: Exp -> IO Exp
--- handleLetIns e = do
---     let builtins = parseBuiltins
---     let getName = map (\(Assign (Ident s _ _) b) -> s)
---     let builtinNames = Set.fromList $ getName builtins
---     let envNames = Set.fromList $ getName l
---     let usedBuiltinNames = Set.intersection builtinNames envNames
---
---     unless
---         (null usedBuiltinNames)
---         ( do
---             putStrLn "Warning. Used reserved name:"
---             mapM_ (putStrLn . ("- " ++)) (Set.toList usedBuiltinNames)
---         )
---     
---     undefined
+handleLetIns :: Exp -> IO Exp
+handleLetIns e = do
+    let getName = map (\(Assign (Ident s _ _) b) -> s)
+    -- let builtinNames = Set.fromList $ getName builtins
+    -- let envNames = Set.fromList $ getName l
+    -- let usedBuiltinNames = Set.intersection builtinNames envNames
+
+    -- unless
+    --     (null usedBuiltinNames)
+    --     ( do
+    --         putStrLn "Warning. Used reserved name:"
+    --         mapM_ (putStrLn . ("- " ++)) (Set.toList usedBuiltinNames)
+    --     )
+    
+    undefined
 
 -- Perform definition substitutions for a list of defs
 -- handleDefs :: Exp -> IO Exp

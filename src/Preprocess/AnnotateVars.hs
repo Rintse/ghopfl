@@ -27,6 +27,7 @@ import Debug.Trace
 import Preprocess.Definitions (runDef)
 import qualified Control.Lens as Lens
 import Control.Lens (over, view, set)
+import Preprocess.Builtins (builtins)
 
 -- State environment contains a counter and a hashmap in which the values
 -- track all the ids that we are currently substituting the key for.
@@ -67,9 +68,10 @@ varAssign (Raw.Assign x _ t) = do
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
 getSub (Raw.Ident x) m = do
-    case m HM.!? x of
-        Nothing -> error $ "Free variable?: " ++ x
-        Just i -> Ident x i 0
+    case (m HM.!? x, builtins HM.!? x) of
+        (Just i, _) -> Ident x i 0
+        (Nothing, Just _) -> Ident x 0 0
+        (Nothing, Nothing) -> error $ "Free variable?: " ++ x
 
 -- Gets all free variables in an assignment list
 getFreesL :: [Assignment] -> Set.Set Ident

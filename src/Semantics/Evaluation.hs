@@ -28,6 +28,7 @@ import Control.Lens (view, set)
 import Control.Lens.Setter (over)
 import Debug.Trace ( trace )
 import Control.Monad (when)
+import Preprocess.Builtins (builtins)
 
 
 -- Evaluates a program given a maximum eval depth, and environment
@@ -57,10 +58,17 @@ evaluate v prog n s env = do
 eval :: Exp -> EvalMonad Value
 
 -- Variables
-eval exp@(Var (Ident v i r)) = asks (HM.lookup v . view evalEnv) >>= go where
-    go (Just e) = eval' e
-    go Nothing = throwError $ "Undefined free variable: " 
-        ++ show v ++ " [id=" ++ show i ++ "; depth=" ++ show r ++ "]"
+eval exp@(Var (Ident v i r)) = do 
+    var <- asks (HM.lookup v . view evalEnv) 
+    let builtin = HM.lookup v builtins
+    case (var, builtin) of
+        -- Local variable take precedence over builtins
+        (Just e, _) -> eval' e
+        (Nothing, Just e) -> eval' e
+        (Nothing, Nothing) -> throwError $ "Undefined free variable: " 
+            ++ show v ++ " [id=" ++ show i ++ "; depth=" ++ show r ++ "]"
+
+eval exp@(LetIn (Env a) e) = eval' $ substList e a
 
 -- Later modality: do no allow calculation past "depth" nexts
 eval exp@(Next e) = do asks (view evalDepth) >>= go where

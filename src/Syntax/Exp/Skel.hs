@@ -107,10 +107,10 @@ transExp x = case x of
   Syntax.Exp.Abs.LetIn environment exp -> failure x
   Syntax.Exp.Abs.Abstr lam ident exp -> failure x
 
-transEnvironment :: Syntax.Exp.Abs.Environment -> Result
-transEnvironment x = case x of
-  Syntax.Exp.Abs.Env assignments -> failure x
-
 transAssignment :: Syntax.Exp.Abs.Assignment -> Result
 transAssignment x = case x of
   Syntax.Exp.Abs.Assign ident tsub exp -> failure x
+
+transEnvironment :: Syntax.Exp.Abs.Environment -> Result
+transEnvironment x = case x of
+  Syntax.Exp.Abs.Env assignments -> failure x

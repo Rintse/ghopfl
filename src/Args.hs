@@ -36,14 +36,14 @@ defaultOpts =
         }
 
 -- Reads a file if such an argument is given
-readFile :: String -> Options -> IO Options
-readFile arg opt = do
+readFile :: String -> IO String
+readFile arg = do
     file <- try (IO.readFile arg) :: ParseMonad String
     case file of
         Left ex -> do
             putStrLn $ "Error opening file:\n" ++ show ex
             exitFailure
-        Right content -> return opt{optInput = return content}
+        Right content -> return content
 
 readEnv :: String -> Options -> IO Options
 readEnv arg opt = do
@@ -104,11 +104,6 @@ putHelp opt = do
 options :: [OptDescr (Options -> IO Options)]
 options =
     [ Option
-        "i"
-        ["input"]
-        (ReqArg Args.readFile "FILE")
-        "Input file"
-    , Option
         "E"
         ["evaluate"]
         (NoArg readEval)

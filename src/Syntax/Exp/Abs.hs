@@ -58,10 +58,10 @@ data Exp
     | Abstr Lam Ident Exp
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data Environment = Env [Assignment]
+data Assignment = Assign Ident TSub Exp
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data Assignment = Assign Ident TSub Exp
+data Environment = Env [Assignment]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Ident = Ident String

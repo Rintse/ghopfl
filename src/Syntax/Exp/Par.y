@@ -217,22 +217,15 @@ Exp
   | Lam Ident '.' Exp { Syntax.Exp.Abs.Abstr $1 $2 $4 }
   | Exp1 { $1 }
 
-ListExp :: { [Syntax.Exp.Abs.Exp] }
-ListExp
-  : {- empty -} { [] }
-  | Exp { (:[]) $1 }
-  | Exp ',' ListExp { (:) $1 $3 }
+Assignment :: { Syntax.Exp.Abs.Assignment }
+Assignment : Ident TSub Exp { Syntax.Exp.Abs.Assign $1 $2 $3 }
 
 Environment :: { Syntax.Exp.Abs.Environment }
 Environment : ListAssignment { Syntax.Exp.Abs.Env $1 }
 
-Assignment :: { Syntax.Exp.Abs.Assignment }
-Assignment : Ident TSub Exp { Syntax.Exp.Abs.Assign $1 $2 $3 }
-
 ListAssignment :: { [Syntax.Exp.Abs.Assignment] }
 ListAssignment
-  : {- empty -} { [] }
-  | Assignment { (:[]) $1 }
+  : Assignment ';' { (:[]) $1 }
   | Assignment ';' ListAssignment { (:) $1 $3 }
 
 {
