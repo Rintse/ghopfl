@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+
 -- Defines a evaluation function for expressions
 -- which implements a call-by-value big-step semantics
 
@@ -6,6 +7,9 @@
 module Semantics.Evaluation where
 
 import Control.Applicative
+import Control.Lens (set, view)
+import Control.Lens.Setter (over)
+import Control.Monad (when)
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -13,23 +17,24 @@ import Data.Bifunctor
 import Data.Functor.Foldable
 import Data.Functor.Foldable.Monadic
 import Data.Functor.Foldable.TH
-import Data.HashMap.Lazy as HM
+import Data.HashMap.Lazy as HM (HashMap, fromList, lookup)
 import Data.Tree
+import Debug.Trace (trace)
+import Preprocess.AnnotateVars (annotateVars)
+import Preprocess.Builtins (builtinsRaw)
 import Semantics.Sampling
 import Semantics.Substitution
 import Semantics.Tools
 import Semantics.Values
+import qualified Syntax.Exp.Abs as Raw
 import Syntax.Expression
 import Syntax.Number
-import qualified Syntax.Exp.Abs as Raw
+import Syntax.Parse (parseExp)
 import Tools.Treeify
 import Tools.VerbPrint
-import Control.Lens (view, set)
-import Control.Lens.Setter (over)
-import Debug.Trace ( trace )
-import Control.Monad (when)
-import Preprocess.Builtins (builtins)
 
+builtins :: HM.HashMap String Exp
+builtins = fromList $ map (second (annotateVars . parseExp)) builtinsRaw
 
 -- Evaluates a program given a maximum eval depth, and environment
 -- To be called from Main.hs
@@ -45,73 +50,95 @@ evaluate v prog n s env = do
     let r3 = runExcept r2 -- Run except to catch errors
     case r3 of
         Left s -> putStrLn $ "Evaluation failed:\n" ++ s
-        Right (s, p_ctx) -> putStrLn $
-            "Result (density = "
-                ++ show (view evalDensity p_ctx)
-                ++ ", remainings draws = "
-                ++ show (view randomDraws p_ctx)
-                ++ "):\n"
-                ++ treeValue s
+        Right (s, p_ctx) ->
+            putStrLn $
+                "Result (density = "
+                    ++ show (view evalDensity p_ctx)
+                    ++ ", remainings draws = "
+                    ++ show (view randomDraws p_ctx)
+                    ++ "):\n"
+                    ++ treeValue s
 
 -- Evaluation function:
 -- Takes an AST and calculates the result of the program using big step semantics
 eval :: Exp -> EvalMonad Value
-
 -- Variables
-eval exp@(Var (Ident v i r)) = do 
-    var <- asks (HM.lookup v . view evalEnv) 
+eval exp@(Var (Ident v i r)) = do
+    var <- asks (HM.lookup v . view evalEnv)
     let builtin = HM.lookup v builtins
     case (var, builtin) of
         -- Local variable take precedence over builtins
         (Just e, _) -> eval' e
         (Nothing, Just e) -> eval' e
-        (Nothing, Nothing) -> throwError $ "Undefined free variable: " 
-            ++ show v ++ " [id=" ++ show i ++ "; depth=" ++ show r ++ "]"
-
+        (Nothing, Nothing) ->
+            throwError $
+                "Undefined free variable: "
+                    ++ show v
+                    ++ " [id="
+                    ++ show i
+                    ++ "; depth="
+                    ++ show r
+                    ++ "]"
 eval exp@(LetIn (Env a) e) = eval' $ substList e a
-
 -- Later modality: do no allow calculation past "depth" nexts
-eval exp@(Next e) = do asks (view evalDepth) >>= go where
+eval exp@(Next e) = do asks (view evalDepth) >>= go
+  where
     go 0 = return $ VNext e
     go _ = local (over evalDepth $ subtract 1) (VNext . toExp <$> eval' e)
 
 -- Put into fixpoint
 eval exp@(In e) = return $ VIn e
-
 -- Extract from fixpoint
-eval exp@(Out e) = eval' e >>= go where
-    go(VIn v) = eval' v
-    go other = throwError $ " Out on non-In:\n" 
-        ++ treeTerm exp ++ "\nOut value:\n" ++ show other
+eval exp@(Out e) = eval' e >>= go
+  where
+    go (VIn v) = eval' v
+    go other =
+        throwError $
+            " Out on non-In:\n"
+                ++ treeTerm exp
+                ++ "\nOut value:\n"
+                ++ show other
 
 -- Function application
-eval exp@(App e1 e2) = match2 eval' e1 e2 >>= go where
+eval exp@(App e1 e2) = match2 eval' e1 e2 >>= go
+  where
     go (VThunk (Abstr x e), r2) = eval' $ substitute e x $ toExp r2
     go _ = throwError $ " Application on non-function:\n" ++ treeTerm exp
 
 -- Delayed function application
-eval exp@(DApp e1 e2) = match2 eval' e1 e2 >>= go where
+eval exp@(DApp e1 e2) = match2 eval' e1 e2 >>= go
+  where
     go (VNext t, VNext s) = do
         trace ("\nt: " ++ treeTerm t ++ "\ns: " ++ treeTerm s) $
-            eval' $ Next $ App t s
-    go (x, y) = throwError $ "Invalid arguments to DApp:\n" ++ treeTerm exp
-        ++ "\nArguments:\n- " ++ show x ++ "\n- " ++ show y
+            eval' $
+                Next $
+                    App t s
+    go (x, y) =
+        throwError $
+            "Invalid arguments to DApp:\n"
+                ++ treeTerm exp
+                ++ "\nArguments:\n- "
+                ++ show x
+                ++ "\n- "
+                ++ show y
 
 -- Pair creation
 eval exp@(Pair e1 e2) = return $ VPair e1 e2
-
 -- First projection
-eval exp@(Fst e) = eval' e >>= go where
+eval exp@(Fst e) = eval' e >>= go
+  where
     go (VPair v1 v2) = eval' v1
     go err = throwError $ "Took fst of non-pair:\n" ++ treeValue err
 
 -- Second projection
-eval exp@(Snd e) = eval' e >>= go where
+eval exp@(Snd e) = eval' e >>= go
+  where
     go (VPair v1 v2) = eval' v2
     go err = throwError $ "Took snd of non-pair:\n" ++ treeValue err
 
 -- Normal distribtion sampling
-eval exp@(Norm e) = eval' e >>= go where
+eval exp@(Norm e) = eval' e >>= go
+  where
     go (VPair e1 e2) = match2 eval' e1 e2 >>= go'
     go _ = throwError $ "Normal argument not a pair of reals: \n" ++ treeTerm exp
     go' (VVal (Fract m), VVal (Fract v)) = performDraw normalDist [m, v]
@@ -119,12 +146,11 @@ eval exp@(Norm e) = eval' e >>= go where
 
 -- Random uniform distrubition sampling
 eval Rand = performDraw randDist []
-
 -- Evaluate into values
 eval exp@(Force e) = eval' e >>= forceEval eval'
-
 -- If then else
-eval exp@(Ite b e1 e2) = eval' b >>= go where
+eval exp@(Ite b e1 e2) = eval' b >>= go
+  where
     go VTrue = eval' e1
     go VFalse = eval' e2
     go _ = throwError $ "If with non boolean condition:\n" ++ treeTerm exp
@@ -132,9 +158,9 @@ eval exp@(Ite b e1 e2) = eval' b >>= go where
 -- Coproduct injection
 eval exp@(InL e) = return $ VInL e
 eval exp@(InR e) = return $ VInR e
-
 -- Matching coproducts
-eval exp@(Match e x e1 y e2) = eval' e >>= go where
+eval exp@(Match e x e1 y e2) = eval' e >>= go
+  where
     go (VInL l) = eval' $ substitute e1 x l
     go (VInR r) = eval' $ substitute e2 y r
     -- go (VInL l) = eval' l >>= eval' . /substitute e1 x . toExp
@@ -143,25 +169,23 @@ eval exp@(Match e x e1 y e2) = eval' e >>= go where
 
 -- Function abstraction
 eval exp@(Abstr x e) = return $ VThunk exp
-
 -- Recursion
 eval exp@(Rec x e) = eval' $ substitute e x (Next $ recName exp)
-
 -- Prev: next inverse
 -- Empty substitution list, simply remove the next
-eval exp@(Prev (Env []) e) = eval' e >>= go where
+eval exp@(Prev (Env []) e) = eval' e >>= go
+  where
     go (VNext e) = eval' e
     go _ = throwError $ "Took prev of non-next:\n" ++ treeTerm exp
 
 -- Non empty list, perform substitutions
 eval exp@(Prev (Env l) e) = eval' $ Prev (Env []) $ substList e l
-
 -- (Un)Boxing
 eval exp@(Box l e) = return $ VBox l e
-eval exp@(Unbox e) = eval' e >>= go where
+eval exp@(Unbox e) = eval' e >>= go
+  where
     go (VBox (Env l) e1) = eval' $ substList e1 l
     go _ = throwError $ "Unbox on non-box:\n" ++ treeTerm exp
-
 eval exp = case exp of
     -- Instant values
     Val v -> return $ VVal v
@@ -188,13 +212,14 @@ eval exp = case exp of
     -- Singleton term
     Single -> return VSingle
 
--- Wrapper around eval that corecurses with it to be able to print all 
+-- Wrapper around eval that corecurses with it to be able to print all
 -- evaluation steps
 eval' :: Exp -> EvalMonad Value
 eval' e = do
     v <- asks $ view evalVerbosity
-    if v >= 2 then
-        -- trace ("evalExp(\n" ++ treeTerm e ++ ")") $ eval e
-        trace ("evalExp(\n" ++ show e ++ "\n)") $ eval e
-    else
-        eval e
+    if v >= 2
+        then
+            -- trace ("evalExp(\n" ++ treeTerm e ++ ")") $ eval e
+            trace ("evalExp(\n" ++ show e ++ "\n)") $ eval e
+        else
+            eval e

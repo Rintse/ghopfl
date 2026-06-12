@@ -1,6 +1,16 @@
+# Expected result: 6
+# stack run -- -E -v tests/basic/letin.gfl
+
+# let 
+#     a <- let 
+#         b <- 2; 
+#         c <- b;
+#     in: c; 
+#     b <- 3; 
+# in: a * b
+
 let 
-    x <- let 
-        z <- 2; 
-    in: z; 
-    y <- 3; 
-in: x * y
+    a <- 1; 
+    b <- 2; 
+    c <- 3; 
+in: a + b + c

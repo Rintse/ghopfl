@@ -1,5 +1,5 @@
 # Expected result: twice delayed result containing 8
-# stack run -- -i tests/delres.gfl -E -vv -n 2
+# stack run -- -E -vv -n 2 tests/delres.gfl
 
 let
     x1 <- dres_now 2 ;
@@ -14,7 +14,7 @@ let
 
     x3 <- dres_delay (dres_now 3);
     f3 <- \x . \y . x + y ;
-    r3 <- dres_func2 f3 r1 r2
+    r3 <- dres_func2 f3 r1 r2 ;
     # r3 is 4+4=8, twice delayed
 in:
     force r3

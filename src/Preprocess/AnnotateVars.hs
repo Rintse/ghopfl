@@ -3,31 +3,34 @@
 -- are annotated with a unique id to aid in substitution. Also defines a
 -- function that transforms raw expressions into their annotated versions
 {-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE TemplateHaskell, RankNTypes #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Preprocess.AnnotateVars where
 
-import qualified Syntax.Exp.Abs as Raw
-import Syntax.Expression
-import Syntax.Number
 import Control.Applicative
+import Control.Lens (over, set, view)
+import qualified Control.Lens as Lens
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Bifunctor
 import Data.Functor.Foldable
 import Data.Functor.Foldable.TH
-import qualified Data.Map as HM
+import Data.HashMap.Lazy as HM (HashMap, fromList)
 import Data.List.Index
+import qualified Data.Map as HM
 import qualified Data.Set as Set
 import Debug.Trace
+import Preprocess.Builtins (builtinNames)
 import Preprocess.Definitions (runDef)
-import qualified Control.Lens as Lens
-import Control.Lens (over, view, set)
-import Preprocess.Builtins (builtins)
+import qualified Syntax.Exp.Abs as Raw
+import Syntax.Expression
+import Syntax.Number
+import Syntax.Parse (parseExp)
 
 -- State environment contains a counter and a hashmap in which the values
 -- track all the ids that we are currently substituting the key for.
@@ -65,13 +68,27 @@ varAssign (Raw.Assign x _ t) = do
     ident <- asks (getSub x . incVar x . view varIds)
     Assign ident <$> transform t
 
+varAssignL :: Assignment -> [Raw.Assignment] -> IdMonad [Assignment]
+varAssignL (Assign x _) l = mapM assignOne l
+  where
+    assignOne a = do
+        trace ("binding " ++ show x ++ " in: " ++ show a) $ 
+            local (over varIds $ incVar x) $ varAssign a
+
+varAssignCumulative :: [Raw.Assignment] -> IdMonad [Assignment]
+varAssignCumulative (a : l) = do
+    h <- varAssign a
+    t <- varAssignL a l
+    return $ h : varAssignCumulative t
+varAssignCumulative [] = return []
+
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
 getSub (Raw.Ident x) m = do
-    case (m HM.!? x, builtins HM.!? x) of
+    case (m HM.!? x, Set.member x builtinNames) of
         (Just i, _) -> Ident x i 0
-        (Nothing, Just _) -> Ident x 0 0
-        (Nothing, Nothing) -> error $ "Free variable?: " ++ x
+        (Nothing, True) -> Ident x 0 0
+        (Nothing, False) -> error $ "Free variable?: " ++ x ++ "\n" ++ show builtinNames
 
 -- Gets all free variables in an assignment list
 getFreesL :: [Assignment] -> Set.Set Ident
@@ -79,7 +96,8 @@ getFreesL = foldr (Set.union . (\(Assign x t) -> getFrees t)) Set.empty
 
 -- Gets all free variables in an expression
 getFrees :: Exp -> Set.Set Ident
-getFrees = cata go where
+getFrees = cata go
+  where
     go (VarF id@(Ident x d _)) = if d == 0 then Set.singleton id else Set.empty
     go (ValF _) = Set.empty
     go (PrevF (Env l) e) = Set.union e $ getFreesL l
@@ -88,8 +106,11 @@ getFrees = cata go where
 
 -- Transforms an identifier into an identity substitution for that identifier
 idSubst :: Ident -> Raw.Assignment
-idSubst (Ident x _ _) = Raw.Assign (Raw.Ident x) (Raw.TSub "")
-    (Raw.Var $ Raw.Ident x)
+idSubst (Ident x _ _) =
+    Raw.Assign
+        (Raw.Ident x)
+        (Raw.TSub "")
+        (Raw.Var $ Raw.Ident x)
 
 -- Returns the identity substitution list for all free variables
 -- in term e. Used in boxF and prevF
@@ -146,7 +167,7 @@ transform exp = case exp of
     Raw.PrevI e -> transform $ Raw.Prev (freeList e) e
     -- WARNING: Here be binders
     Raw.LetIn (Raw.Env l) e -> do
-        rl <- mapM varAssign l
+        rl <- varAssignCumulative l
         re <- local (over varIds $ bindList l) $ transform e
         return $ LetIn (Env rl) re
     Raw.Box (Raw.Env l) e -> do
