@@ -1,16 +1,11 @@
 # Expected result: 6
 # stack run -- -E -v tests/basic/letin.gfl
 
-# let 
-#     a <- let 
-#         b <- 2; 
-#         c <- b;
-#     in: c; 
-#     b <- 3; 
-# in: a * b
-
 let 
-    a <- 1; 
-    b <- 2; 
-    c <- 3; 
+    a <- let 
+        a <- 1; 
+        b <- a;
+    in: b; 
+    b <- a + 1; 
+    c <- b + 1; 
 in: a + b + c

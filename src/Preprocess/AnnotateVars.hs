@@ -21,6 +21,7 @@ import Data.Bifunctor
 import Data.Functor.Foldable
 import Data.Functor.Foldable.TH
 import Data.HashMap.Lazy as HM (HashMap, fromList)
+import Data.List (inits)
 import Data.List.Index
 import qualified Data.Map as HM
 import qualified Data.Set as Set
@@ -68,19 +69,25 @@ varAssign (Raw.Assign x _ t) = do
     ident <- asks (getSub x . incVar x . view varIds)
     Assign ident <$> transform t
 
-varAssignL :: Assignment -> [Raw.Assignment] -> IdMonad [Assignment]
-varAssignL (Assign x _) l = mapM assignOne l
-  where
-    assignOne a = do
-        trace ("binding " ++ show x ++ " in: " ++ show a) $ 
-            local (over varIds $ incVar x) $ varAssign a
-
+-- For let-in lists, we want to support using earlier assignments in the list
+-- e.g.: let a <- 1; b <- a + 1; in: a * b
+-- To this end, we need to bind the identifier of each assignment in all the
+-- following assignments: let x <- a; y <- b; z <- c; in: t
+-- Should be handled like:
+-- 1. transform a
+-- 2. bind x, transform b
+-- 3. bind x, y transform c
+-- 4. bind x, y, z, transform t
 varAssignCumulative :: [Raw.Assignment] -> IdMonad [Assignment]
-varAssignCumulative (a : l) = do
-    h <- varAssign a
-    t <- varAssignL a l
-    return $ h : varAssignCumulative t
-varAssignCumulative [] = return []
+varAssignCumulative l = do
+    mapM varAssignL $ zip l bindLists
+  where
+    bindLists = inits $ init l -- grammar enforces nonempty lists
+    varAssignL (Raw.Assign x _ e, l) = do
+        ident <- asks (getSub x . incVar x . view varIds)
+        let e' = local (over varIds $ bindList l) $ transform e
+        Assign ident
+            <$> trace ("binding: " ++ show l ++ "\nin rhs of " ++ show ident ++ " <- ...") e'
 
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
@@ -194,7 +201,8 @@ transform exp = case exp of
         re <- local (over varIds $ incVar f) $ transform e
         return $ Rec rf re
 
--- Translate a raw tree into the id tree with annotated identifiers
+-- Translate a raw tree into the id tree with annotated identifiers that
+-- disambiguate variables w.r.t shadowing
 annotateVars :: Raw.Exp -> Exp
 annotateVars e = do
     let ctx = TransformContext HM.empty

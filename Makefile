@@ -7,7 +7,7 @@ types_files = $(addprefix src/Syntax/Types/,$(GRAMMER_FILES))
 exp_unneeded = $(addprefix src/Syntax/Exp/,$(UNNEEDED))
 types_unneeded = $(addprefix src/Syntax/Types/,$(UNNEEDED))
 
-all: $(exp_files) $(types_files)
+grammar: $(exp_files) $(types_files)
 
 $(exp_files): src/exp.bnf
 	bnfc -p Syntax -o src -d $<

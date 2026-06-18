@@ -6,32 +6,50 @@
 -- Small step semantics for guarded HOPFL
 module Semantics.Evaluation where
 
-import Control.Applicative
 import Control.Lens (set, view)
 import Control.Lens.Setter (over)
 import Control.Monad (when)
-import Control.Monad.Except
-import Control.Monad.Reader
-import Control.Monad.State
-import Data.Bifunctor
-import Data.Functor.Foldable
-import Data.Functor.Foldable.Monadic
-import Data.Functor.Foldable.TH
+import Control.Monad.Except (MonadError (throwError), runExcept)
+import Control.Monad.Reader (MonadReader (local), ReaderT (runReaderT), asks)
+import Control.Monad.State (StateT (runStateT))
+import Data.Bifunctor (Bifunctor (second))
 import Data.HashMap.Lazy as HM (HashMap, fromList, lookup)
-import Data.Tree
 import Debug.Trace (trace)
 import Preprocess.AnnotateVars (annotateVars)
 import Preprocess.Builtins (builtinsRaw)
-import Semantics.Sampling
-import Semantics.Substitution
-import Semantics.Tools
-import Semantics.Values
+import Semantics.Sampling (normalDist, randDist)
+import Semantics.Substitution (recName, substList, substitute, substListCumulative)
+import Semantics.Tools (
+    EvalContext (EvalContext),
+    EvalMonad,
+    ProbilityContext (ProbilityContext),
+    evalAExp,
+    evalAExp1,
+    evalBExp,
+    evalBExp1,
+    evalDensity,
+    evalDepth,
+    evalEnv,
+    evalMonad,
+    evalRelop,
+    evalVerbosity,
+    forceEval,
+    match2,
+    mkEnv,
+    performDraw,
+    printEnv,
+    randomDraws,
+ )
+import Semantics.Values (
+    Value (VBox, VFalse, VIn, VInL, VInR, VNext, VPair, VSingle, VThunk, VTrue, VVal),
+    toExp,
+ )
 import qualified Syntax.Exp.Abs as Raw
-import Syntax.Expression
-import Syntax.Number
+import Syntax.Expression (Environment (Env), Exp (..), Ident (Ident))
+import Syntax.Number (Number (Fract), numDiv, numMod, numPow)
 import Syntax.Parse (parseExp)
-import Tools.Treeify
-import Tools.VerbPrint
+import Tools.Treeify (treeTerm, treeValue)
+import Tools.VerbPrint (putStrV)
 
 builtins :: HM.HashMap String Exp
 builtins = fromList $ map (second (annotateVars . parseExp)) builtinsRaw
@@ -44,7 +62,7 @@ evaluate v prog n s env = do
     putStrV v ("- using the environment: " ++ printEnv (mkEnv env))
     putStrV v ("- up to depth: " ++ show n ++ "\n")
 
-    let toEval = evalMonad (eval prog)
+    let toEval = evalMonad (eval' prog)
     let r1 = runReaderT toEval $ EvalContext v (mkEnv env) n
     let r2 = runStateT r1 $ ProbilityContext s 1.0
     let r3 = runExcept r2 -- Run except to catch errors
@@ -79,7 +97,7 @@ eval exp@(Var (Ident v i r)) = do
                     ++ "; depth="
                     ++ show r
                     ++ "]"
-eval exp@(LetIn (Env a) e) = eval' $ substList e a
+eval exp@(LetIn (Env a) e) = eval' $ substListCumulative e a
 -- Later modality: do no allow calculation past "depth" nexts
 eval exp@(Next e) = do asks (view evalDepth) >>= go
   where
@@ -219,7 +237,7 @@ eval' e = do
     v <- asks $ view evalVerbosity
     if v >= 2
         then
-            -- trace ("evalExp(\n" ++ treeTerm e ++ ")") $ eval e
-            trace ("evalExp(\n" ++ show e ++ "\n)") $ eval e
+            trace ("evalExp(\n" ++ treeTerm e ++ ")") $ eval e
+            -- trace ("evalExp(\n" ++ show e ++ "\n)") $ eval e
         else
             eval e

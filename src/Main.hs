@@ -15,7 +15,7 @@ import System.Console.GetOpt
 import System.Directory.Internal.Prelude (hPutStrLn)
 import System.Environment (getArgs)
 import System.Environment.Blank (getProgName)
-import System.Exit
+import System.Exit (exitFailure)
 import System.IO (stderr)
 import Tools.Treeify (showProg)
 
