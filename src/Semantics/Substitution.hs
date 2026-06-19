@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 -- Defines some substitution functions needed for evaluating
 -- recursion, function application, unboxing, previous and match statements
 {-# LANGUAGE TypeFamilies #-}
@@ -8,11 +7,11 @@ module Semantics.Substitution where
 import Syntax.Expression
 import Syntax.Number
 
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.Reader (Reader, ask, asks, local, runReader)
 import Data.Functor.Foldable
 import Data.Functor.Foldable.Monadic
 import Data.List (inits)
+import Debug.Trace (trace)
 
 -- Increases the recursion depth of an idenitifier by 1
 incDepth :: Ident -> Ident
@@ -71,13 +70,16 @@ substList = Prelude.foldl (\e (Assign x t) -> substitute e x t)
 -- assignment in all the following assignments [k+1:n]:
 -- Example: substListCumulative [x <- a; y <- b; z <- c] e
 --   1. tmp1 = substList a []
---   2. tmp2 = substList b [x <- a]
---   3. tmp3 = substList c [x <- a; y <- b]
+--   2. tmp2 = substList b [x <- tmp1]
+--   3. tmp3 = substList c [x <- tmp1; y <- tmp2]
 --   4. substList e [x <- tmp1; y <- tmp2; z <- tmp3]
 substListCumulative :: Exp -> [Assignment] -> Exp
-substListCumulative e l = do
-    substList e subbedList
+substListCumulative e l = trace ("subbing in " ++ show e ++ " : " ++ show subbedList)substList e subbedList
   where
-    subbedList = map (uncurry subCumulative) $ enumerate l
-    enumerate = zip [0 ..]
-    subCumulative idx (Assign x a) = Assign x $ substList a $ take idx l
+    subbedList = doSub l []
+    doSub :: [Assignment] -> [Assignment] -> [Assignment]
+    doSub [] acc = reverse acc
+    doSub (Assign x a : rest) acc = doSub rest (newSub : acc)
+      where
+        subbedA = substList a acc
+        newSub = Assign x subbedA

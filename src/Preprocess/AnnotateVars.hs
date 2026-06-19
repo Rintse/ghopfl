@@ -86,8 +86,7 @@ varAssignCumulative l = do
     varAssignL (Raw.Assign x _ e, l) = do
         ident <- asks (getSub x . incVar x . view varIds)
         let e' = local (over varIds $ bindList l) $ transform e
-        Assign ident
-            <$> trace ("binding: " ++ show l ++ "\nin rhs of " ++ show ident ++ " <- ...") e'
+        Assign ident <$> e'
 
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
@@ -95,7 +94,7 @@ getSub (Raw.Ident x) m = do
     case (m HM.!? x, Set.member x builtinNames) of
         (Just i, _) -> Ident x i 0
         (Nothing, True) -> Ident x 0 0
-        (Nothing, False) -> error $ "Free variable?: " ++ x ++ "\n" ++ show builtinNames
+        (Nothing, False) -> error $ "Free variable: " ++ x ++ "\n" ++ show builtinNames
 
 -- Gets all free variables in an assignment list
 getFreesL :: [Assignment] -> Set.Set Ident

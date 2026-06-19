@@ -18,7 +18,12 @@ import Debug.Trace (trace)
 import Preprocess.AnnotateVars (annotateVars)
 import Preprocess.Builtins (builtinsRaw)
 import Semantics.Sampling (normalDist, randDist)
-import Semantics.Substitution (recName, substList, substitute, substListCumulative)
+import Semantics.Substitution (
+    recName,
+    substList,
+    substListCumulative,
+    substitute,
+ )
 import Semantics.Tools (
     EvalContext (EvalContext),
     EvalMonad,
@@ -41,7 +46,19 @@ import Semantics.Tools (
     randomDraws,
  )
 import Semantics.Values (
-    Value (VBox, VFalse, VIn, VInL, VInR, VNext, VPair, VSingle, VThunk, VTrue, VVal),
+    Value (
+        VBox,
+        VFalse,
+        VIn,
+        VInL,
+        VInR,
+        VNext,
+        VPair,
+        VSingle,
+        VThunk,
+        VTrue,
+        VVal
+    ),
     toExp,
  )
 import qualified Syntax.Exp.Abs as Raw
@@ -97,6 +114,8 @@ eval exp@(Var (Ident v i r)) = do
                     ++ "; depth="
                     ++ show r
                     ++ "]"
+
+-- LetIn has a special type of substitution
 eval exp@(LetIn (Env a) e) = eval' $ substListCumulative e a
 -- Later modality: do no allow calculation past "depth" nexts
 eval exp@(Next e) = do asks (view evalDepth) >>= go
@@ -236,8 +255,9 @@ eval' :: Exp -> EvalMonad Value
 eval' e = do
     v <- asks $ view evalVerbosity
     if v >= 2
-        then
-            trace ("evalExp(\n" ++ treeTerm e ++ ")") $ eval e
-            -- trace ("evalExp(\n" ++ show e ++ "\n)") $ eval e
+        then do
+            result <- eval e
+            trace ("evalExp(\n" ++ treeTerm e ++ ")\n= " ++ treeValue result) $ eval e
+        -- trace ("evalExp(\n" ++ show e ++ "\n)") $ eval e
         else
             eval e
