@@ -13,6 +13,47 @@
 #     # c = 3
 # in: a + b + c
 
+# evalExp(
+# LetIn
+# |
+# +- Assignment List
+# |  |
+# |  +- Assignment
+# |  |  |
+# |  |  +- a (1)
+# |  |  |
+# |  |  `- 1
+# |  |
+# |  `- Assignment
+# |     |
+# |     +- b (1)
+# |     |
+# |     `- a (1)
+# |
+# `- Add
+#    |
+#    +- LetIn
+#    |  |
+#    |  +- Assignment List
+#    |  |  |
+#    |  |  +- Assignment
+#    |  |  |  |
+#    |  |  |  +- a (1)
+#    |  |  |  |
+#    |  |  |  `- 1
+#    |  |  |
+#    |  |  `- Assignment
+#    |  |     |
+#    |  |     +- b (1)
+#    |  |     |
+#    |  |     `- a (1)
+#    |  |
+#    |  `- b (1)
+#    |
+#    `- 1
+# )
+# = 2
+
 let
     a <- let
         a <- 1;

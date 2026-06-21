@@ -234,7 +234,14 @@ eval exp = case exp of
     Pow e1 e2 -> evalAExp eval' e1 numPow e2
     Div e1 e2 -> evalAExp eval' e1 numDiv e2
     Mod e1 e2 -> evalAExp eval' e1 numMod e2
-    Add e1 e2 -> evalAExp eval' e1 (+) e2
+    Add e1 e2 -> do
+        e1' <- eval e1
+        e2' <- eval e2
+        r <- evalAExp eval' e1 (+) e2
+        trace (
+            "Adding: " ++ show e1 ++ "(>" ++ show e1' ++ ")" ++ " + "
+            ++ show e1 ++ "(" ++ show e2' ++ ") =" ++ show r) $
+            evalAExp eval' e1 (+) e2
     Sub e1 e2 -> evalAExp eval' e1 (-) e2
     Mul e1 e2 -> evalAExp eval' e1 (*) e2
     -- Logic operators
