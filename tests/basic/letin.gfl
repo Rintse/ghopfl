@@ -19,4 +19,4 @@ let
         b <- a;
     in: b;
     b <- a + 1;
-in: a + b
+in: a

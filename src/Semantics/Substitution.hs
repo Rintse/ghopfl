@@ -60,7 +60,12 @@ subst = apoM go
 
 -- Substitutes in exp, s for x
 substitute :: Exp -> Ident -> Exp -> Exp
-substitute exp x s = runReader (subst exp) (x, s)
+substitute exp x s =
+    trace
+        ( "S (" ++ show exp ++ ") :: " ++ show x ++ " <= " ++ show s ++ " = " ++ show 
+            (runReader (subst exp) (x, s))
+        ) $
+        runReader (subst exp) (x, s)
 
 -- Perform substitution for a list of subs
 substList :: Exp -> [Assignment] -> Exp
@@ -74,7 +79,12 @@ substList = Prelude.foldl (\e (Assign x t) -> substitute e x t)
 --   3. tmp3 = substList c [x <- tmp1; y <- tmp2]
 --   4. substList e [x <- tmp1; y <- tmp2; z <- tmp3]
 substListCumulative :: Exp -> [Assignment] -> Exp
-substListCumulative e l = trace ("subbing in " ++ show e ++ " : " ++ show subbedList)substList e subbedList
+substListCumulative e l =
+    trace
+        ("subbing in " ++ show e ++ " <= " ++ show subbedList)
+        substList
+        e
+        subbedList
   where
     subbedList = doSub l []
     doSub :: [Assignment] -> [Assignment] -> [Assignment]

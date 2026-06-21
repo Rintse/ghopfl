@@ -117,6 +117,7 @@ eval exp@(Var (Ident v i r)) = do
 
 -- LetIn has a special type of substitution
 eval exp@(LetIn (Env a) e) = eval' $ substListCumulative e a
+
 -- Later modality: do no allow calculation past "depth" nexts
 eval exp@(Next e) = do asks (view evalDepth) >>= go
   where
