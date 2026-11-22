@@ -1,0 +1,7 @@
+( 
+  fix f . λ r . λ n . λ size .
+  if ( r ≤ n * ( 1 / size ) )
+      then n - 1 # This iteration is 1 too far
+      else prevI ( f ⊙ next r ⊙ next (n+1) ⊙ next size )
+) 
+rand 0

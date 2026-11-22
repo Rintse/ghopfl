@@ -1,0 +1,3 @@
+fix f . λ n . 
+    if ( n = 0 ) then co_zero 
+    else in ( inR ( f ⊙ next ( n - 1 ) ) )

@@ -1,0 +1,4 @@
+λ n . match ( out n ) { 
+    inL x → true ;
+    inR y → false 
+}

@@ -16,7 +16,6 @@ import Data.Bifunctor (Bifunctor (second))
 import Data.HashMap.Lazy as HM (HashMap, fromList, lookup)
 import Debug.Trace (trace)
 import Preprocess.AnnotateVars (annotateVars)
-import Preprocess.Builtins (builtinsRaw)
 import Semantics.Sampling (normalDist, randDist)
 import Semantics.Substitution (
     recName,
@@ -35,6 +34,7 @@ import Semantics.Tools (
     evalDensity,
     evalDepth,
     evalEnv,
+    evalBuiltins,
     evalMonad,
     evalRelop,
     evalVerbosity,
@@ -62,25 +62,23 @@ import Semantics.Values (
     toExp,
  )
 import qualified Syntax.Exp.Abs as Raw
-import Syntax.Expression (Environment (Env), Exp (..), Ident (Ident))
+import Syntax.Expression (Environment (Env), Exp (..), Ident (Ident), Assignment (Assign))
 import Syntax.Number (Number (Fract), numDiv, numMod, numPow)
 import Syntax.Parse (parseExp)
 import Tools.Treeify (treeTerm, treeValue)
 import Tools.VerbPrint (putStrV)
 
-builtins :: HM.HashMap String Exp
-builtins = fromList $ map (second (annotateVars . parseExp)) builtinsRaw
 
 -- Evaluates a program given a maximum eval depth, and environment
 -- To be called from Main.hs
-evaluate :: Int -> Exp -> Integer -> [Double] -> Raw.Environment -> IO ()
-evaluate v prog n s env = do
+evaluate :: Int -> HashMap String String -> Exp -> Integer -> [Double] -> Raw.Environment -> IO ()
+evaluate v builtins prog n s env = do
     putStrV v ("Evaluating...\n- with random draws: " ++ show s)
-    putStrV v ("- using the environment: " ++ printEnv (mkEnv env))
+    putStrV v ("- using the environment: " ++ printEnv (mkEnv env builtins))
     putStrV v ("- up to depth: " ++ show n ++ "\n")
 
     let toEval = evalMonad (eval' prog)
-    let r1 = runReaderT toEval $ EvalContext v (mkEnv env) n
+    let r1 = runReaderT toEval $ EvalContext v n (mkEnv env builtins) builtins
     let r2 = runStateT r1 $ ProbilityContext s 1.0
     let r3 = runExcept r2 -- Run except to catch errors
     case r3 of
@@ -100,7 +98,7 @@ eval :: Exp -> EvalMonad Value
 -- Variables
 eval exp@(Var (Ident v i r)) = do
     var <- asks (HM.lookup v . view evalEnv)
-    let builtin = HM.lookup v builtins
+    builtin <- asks (HM.lookup v . view evalBuiltins)
     case (var, builtin) of
         -- Local variable take precedence over builtins
         (Just e, _) -> eval' e
@@ -115,8 +113,28 @@ eval exp@(Var (Ident v i r)) = do
                     ++ show r
                     ++ "]"
 
+eval exp@(LetIn (Env l) e) = do 
+    trace
+        ("subbing in " ++ show e ++ " <= " ++ show subbedList)
+        substList
+        e
+        subbedList
+  where
+    subbedList = doSub l []
+    doSub :: [Assignment] -> [Assignment] -> [Assignment]
+    doSub [] acc = reverse acc
+    doSub (Assign x a : rest) acc = doSub rest (newSub : acc)
+      where
+        subbedA = substList a acc
+        newSub = Assign x subbedA
+
+-- TODO: This needs to assume the shape of substListCumulative
 -- LetIn has a special type of substitution
-eval exp@(LetIn (Env a) e) = eval' $ substListCumulative e a
+-- eval exp@(LetIn (Env l) e) = do 
+--     l' <- mapM evalRhs l
+--     eval' $ substListCumulative e l'
+--   where
+--     evalRhs (Assign x a) = Assign x <$> fmap toExp (eval' a)
 
 -- Later modality: do no allow calculation past "depth" nexts
 eval exp@(Next e) = do asks (view evalDepth) >>= go

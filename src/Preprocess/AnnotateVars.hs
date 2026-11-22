@@ -20,13 +20,12 @@ import Control.Monad.State
 import Data.Bifunctor
 import Data.Functor.Foldable
 import Data.Functor.Foldable.TH
-import Data.HashMap.Lazy as HM (HashMap, fromList)
+import qualified Data.HashMap.Lazy as HM
 import Data.List (inits)
 import Data.List.Index
-import qualified Data.Map as HM
 import qualified Data.Set as Set
 import Debug.Trace
-import Preprocess.Builtins (builtinNames)
+-- import Preprocess.Builtins (builtinNames)
 import Preprocess.Definitions (runDef)
 import qualified Syntax.Exp.Abs as Raw
 import Syntax.Expression
@@ -36,7 +35,7 @@ import Syntax.Parse (parseExp)
 -- State environment contains a counter and a hashmap in which the values
 -- track all the ids that we are currently substituting the key for.
 -- The last element in the sequence is the id to substitute the key for.
-type IdMap = HM.Map String Int
+type IdMap = HM.HashMap String Int
 
 newtype TransformContext = TransformContext
     { _varIds :: IdMap
@@ -91,10 +90,9 @@ varAssignCumulative l = do
 -- Gets the latest substitute for x from m[x] (returns x if none are found)
 getSub :: Raw.Ident -> IdMap -> Ident
 getSub (Raw.Ident x) m = do
-    case (m HM.!? x, Set.member x builtinNames) of
-        (Just i, _) -> Ident x i 0
-        (Nothing, True) -> Ident x 0 0
-        (Nothing, False) -> error $ "Free variable: " ++ x ++ "\n" ++ show builtinNames
+    case m HM.!? x of
+        Just i -> Ident x i 0
+        Nothing -> error $ "Free variable: " ++ x
 
 -- Gets all free variables in an assignment list
 getFreesL :: [Assignment] -> Set.Set Ident
@@ -111,17 +109,16 @@ getFrees = cata go
     go fFree = foldr Set.union Set.empty fFree
 
 -- Transforms an identifier into an identity substitution for that identifier
-idSubst :: Ident -> Raw.Assignment
-idSubst (Ident x _ _) =
-    Raw.Assign
-        (Raw.Ident x)
-        (Raw.TSub "")
-        (Raw.Var $ Raw.Ident x)
 
 -- Returns the identity substitution list for all free variables
 -- in term e. Used in boxF and prevF
-freeList :: Raw.Exp -> Raw.Environment
-freeList e = Raw.Env $ map idSubst $ Set.toList $ getFrees (annotateVars e)
+freeList :: Raw.Exp -> IdMonad Raw.Environment
+freeList e = do 
+    t <- transform e
+    let r = Raw.Env $ map idSubst $ Set.toList $ getFrees (t)
+    return r
+    where idSubst (Ident x _ _) =
+            Raw.Assign (Raw.Ident x) (Raw.TSub "") (Raw.Var $ Raw.Ident x)
 
 -- TODO check for faulty programs?
 -- Transforms the raw syntax tree into a version where the
@@ -169,8 +166,8 @@ transform exp = case exp of
     Raw.Ite b e1 e2 -> liftA3 Ite (transform b) (transform e1) (transform e2)
     -- Syntactic sugar
     Raw.PrevE e -> transform $ Raw.Prev (Raw.Env []) e
-    Raw.BoxI e -> transform $ Raw.Box (freeList e) e
-    Raw.PrevI e -> transform $ Raw.Prev (freeList e) e
+    Raw.BoxI e -> flip Raw.Box e <$> freeList e >>= transform
+    Raw.PrevI e -> flip Raw.Prev e <$> freeList e >>= transform
     -- WARNING: Here be binders
     Raw.LetIn (Raw.Env l) e -> do
         rl <- varAssignCumulative l
@@ -202,7 +199,8 @@ transform exp = case exp of
 
 -- Translate a raw tree into the id tree with annotated identifiers that
 -- disambiguate variables w.r.t shadowing
-annotateVars :: Raw.Exp -> Exp
-annotateVars e = do
-    let ctx = TransformContext HM.empty
+annotateVars :: Raw.Exp -> HM.HashMap String String -> Exp
+annotateVars e builtins = do
+    let t = HM.map (\e -> 0) builtins
+    let ctx = TransformContext $ HM.empty
     runReader (runId (transform e)) ctx

@@ -1,0 +1,5 @@
+fix f . λ n1 . λ n2 . 
+    match ( out n1 ) { 
+        inL x → n2 ; 
+        inR y → in ( inR ( f ⊙ y ⊙ next n2 ) ) 
+    }

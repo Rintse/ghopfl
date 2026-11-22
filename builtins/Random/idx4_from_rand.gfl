@@ -1,0 +1,9 @@
+λ r . 
+    if ( r < 0.25 ) then 0
+    else (
+        if ( r < 0.5 ) then 1
+        else (
+            if ( r < 0.75 ) then 2
+            else 3
+        )
+    )

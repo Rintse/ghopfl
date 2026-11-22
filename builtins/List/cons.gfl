@@ -1,0 +1,1 @@
+λ item . λ l . in ( inR ( item, next l ) )

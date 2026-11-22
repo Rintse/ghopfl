@@ -1,0 +1,5 @@
+fix f . λ c . 
+    match ( out c ) { 
+      inL x → 0 ; 
+      inR y → 1 + prevI ( f ⊙ y ) 
+    }

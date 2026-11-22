@@ -1,0 +1,13 @@
+λ func . fix f . λ x1 . λ x2 .
+    match ( out x1 ) {
+        # First argument available first, continue with second
+        inL value1 → dres_func2_1 func value1 x2 ;
+        inR delay1 → ( 
+            match ( out x2 ) {
+                # Second argument available first, continue with first
+                inL value2 → dres_func2_1 ( flip2 func ) value2 x1 ;
+                # Otherwise, go one level deeper in both
+                inR delay2 → dres_later ( f ⊙ delay1 ⊙ delay2 )
+            } 
+        )
+}

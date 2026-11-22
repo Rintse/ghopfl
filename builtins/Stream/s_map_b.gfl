@@ -1,0 +1,1 @@
+λ f . s_limit_b ( boxI ( s_map_g f ) )

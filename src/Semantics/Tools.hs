@@ -31,8 +31,9 @@ type Env = HashMap String Exp
 
 data EvalContext = EvalContext
     { _evalVerbosity :: Int
-    , _evalEnv :: Env
     , _evalDepth :: Integer
+    , _evalEnv :: Env
+    , _evalBuiltins :: Env
     }
 Lens.makeLenses ''EvalContext
 
@@ -55,11 +56,11 @@ newtype EvalMonad a = EvalMona
         )
 
 -- Transform the environment AST into a hashmap
-mkEnv :: Raw.Environment -> Env
-mkEnv (Raw.Env e) = fromList $ fmap mkAssign e
+mkEnv :: Raw.Environment -> HashMap String String -> Env
+mkEnv (Raw.Env e) builtins = fromList $ fmap mkAssign e
   where
     mkAssign (Raw.Assign (Raw.Ident x) _ exp) =
-        (x, annotateVars exp)
+        (x, annotateVars exp builtins)
 
 printEnv :: Env -> String
 printEnv m = show $ Prelude.map (\x -> fst x ++ "=" ++ show (snd x)) (toList m)

@@ -1,0 +1,4 @@
+fix f . λ n . λ s .
+    if ( n = 0 )
+        then in ( inL ( s_head_g s ) )
+        else in ( inR ( f ⊙ next ( n - 1 ) ⊙ ( s_tail_g s ) ) )

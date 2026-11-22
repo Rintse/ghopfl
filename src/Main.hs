@@ -52,7 +52,8 @@ main = do
             } = opts
 
     raw <- Args.readFile script_file >>= parse verbosity
-    let e2 = annotateVars raw
+    builtins <- parseBuiltins
+    let e2 = annotateVars raw builtins
     -- e3 <- handleLetIns e2
     let e3 = e2
     let exp = e3
@@ -63,4 +64,4 @@ main = do
 
     showProg verbosity exp
     when eval $
-        evaluate verbosity exp depth draws env
+        evaluate verbosity builtins exp depth draws env 

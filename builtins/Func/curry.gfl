@@ -1,0 +1,1 @@
+λ f . λ pair . f ( fst pair ) ( snd pair )

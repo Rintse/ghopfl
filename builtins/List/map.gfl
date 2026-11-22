@@ -1,0 +1,6 @@
+λ f . fix r . λ l . in (
+    match ( out l ) { 
+        inL unit → inL unit ;
+        inR tup → inR ( f ( fst tup ), r ⊙ snd tup )
+    } 
+)

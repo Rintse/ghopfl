@@ -1,0 +1,1 @@
+λ s2 . boxI ( prevI ( s_tail_g ( unbox s2 ) ) )

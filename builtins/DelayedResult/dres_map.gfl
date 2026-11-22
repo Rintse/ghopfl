@@ -1,0 +1,5 @@
+λ func . fix f . λ x .
+    match ( out x ) {
+        inL value → dres_now ( func value ) ;
+        inR delay → dres_later ( f ⊙ delay ) 
+    }

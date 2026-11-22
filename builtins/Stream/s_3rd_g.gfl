@@ -1,0 +1,1 @@
+λ s . next s_2nd_g ⊙ ( s_tail_g s )

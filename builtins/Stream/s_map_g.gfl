@@ -1,0 +1,3 @@
+λ func . fix f . λ s .
+    s_cons_g_n ( func ( s_head_g s ) ) 
+               ( f ⊙ ( s_tail_g s ) )

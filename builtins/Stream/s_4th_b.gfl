@@ -1,0 +1,1 @@
+λ s . s_head_b ( s_tail_b ( s_tail_b ( s_tail_b s ) ) )
